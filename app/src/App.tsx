@@ -1,26 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
+import React from "react";
+import { Routes, Route, Link } from "react-router-dom"; // Импортируем необходимые компоненты
+import AddClientPage from "./Pages/AddClientPage/AddClientPage";
+import HeaderPages from "./Pages/HeaderPages/HeaderPages";
+import MainPage from "./Pages/MainPage/MainPage";
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div >
+      <HeaderPages />
+
+      <Routes>
+        <Route path="/addClient" element={<AddClientPage />} /> 
+        <Route path="/main" element={<MainPage />} /> 
+      </Routes>
     </div>
   );
-}
+};
+
 
 export default App;
