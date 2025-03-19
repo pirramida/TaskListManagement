@@ -3,6 +3,8 @@ import { Routes, Route, Link } from "react-router-dom"; // Импортируе�
 import AddClientPage from "./Pages/AddClientPage/AddClientPage";
 import HeaderPages from "./Pages/HeaderPages/HeaderPages";
 import MainPage from "./Pages/MainPage/MainPage";
+import TrainingCalendar from "./Pages/TrainingCalendar/TrainingCalendar";
+
 const App: React.FC = () => {
   return (
     <div >
@@ -11,6 +13,8 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/addClient" element={<AddClientPage />} /> 
         <Route path="/main" element={<MainPage />} /> 
+        <Route path="/trainingCalendar" element={<TrainingCalendar />} /> 
+
       </Routes>
     </div>
   );
