@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import HPStyles from './HeaderPages.module.css'
 
 const HeaderPages = () => {
   return (
@@ -19,34 +20,25 @@ const HeaderPages = () => {
         <Button
           component={Link}
           to="/main"
-          sx={{
-            color: 'white',
-            backgroundColor: '#ff4081',
-            padding: '8px 16px',
-            borderRadius: '30px',
-            '&:hover': {
-              backgroundColor: '#f50057',
-            },
-            transition: 'background-color 0.3s', 
-          }}
+          className={HPStyles.customButton}
         >
           Главная страница
         </Button>
         <Button
           component={Link}
-          to="/addClient"
-          sx={{
-            color: 'white',
-            backgroundColor: '#ff4081',
-            padding: '8px 16px',
-            borderRadius: '30px',
-            '&:hover': {
-              backgroundColor: '#f50057',
-            },
-            transition: 'background-color 0.3s', 
-          }}
+          to="/trainingCalendar"
+          className={HPStyles.customButton}
+
         >
           Календарь Тренировок
+        </Button>
+        <Button
+          component={Link}
+          to="/calculators"
+          className={HPStyles.customButton}
+
+        >
+          Калькуляторы
         </Button>
         <Button
           component={Link}
