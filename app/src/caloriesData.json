@@ -1,0 +1,11 @@
+{
+    "борщ": { "caloriesPer100ml": 60 },
+    "плов": { "caloriesPer100g": 130 },
+    "яблоки": { "caloriesPer100g": 52 },
+    "морковь": { "caloriesPer100g": 41 },
+    "картофель": { "caloriesPer100g": 77 },
+    "курица": { "caloriesPer100g": 165 },
+    "салат": { "caloriesPer100g": 50 },
+    "солянка": { "caloriesPer100ml": 90 },
+    "pizza": { "caloriesPer100g": 266 }
+  }

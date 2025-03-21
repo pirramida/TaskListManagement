@@ -42,6 +42,22 @@ const HeaderPages = () => {
         </Button>
         <Button
           component={Link}
+          to="/calories"
+          sx={{
+            color: 'white',
+            backgroundColor: '#ff4081',
+            padding: '8px 16px',
+            borderRadius: '30px',
+            '&:hover': {
+              backgroundColor: '#f50057',
+            },
+            transition: 'background-color 0.3s', 
+          }}
+        >
+          Проверка колорий
+        </Button>
+        <Button
+          component={Link}
           to="/addClient"
           sx={{
             color: 'white',

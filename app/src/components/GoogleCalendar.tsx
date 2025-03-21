@@ -1,8 +1,8 @@
-// import React, { useEffect } from "react";
-// import { gapi } from "gapi-script";
+import React, { useEffect } from "react";
+import { gapi } from "gapi-script";
 
 
-// const GoogleCalendar = () => {
+const GoogleCalendar = () => {
 //   useEffect(() => {
 //     const initClient = () => {
 //       gapi.client.init({
@@ -27,6 +27,6 @@
 //   }, []);
 
 //   return <div>Google Календарь подключен</div>;
-// };
+};
 
-// export default GoogleCalendar;
+export default GoogleCalendar;

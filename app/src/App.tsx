@@ -5,6 +5,8 @@ import HeaderPages from "./Pages/HeaderPages/HeaderPages";
 import MainPage from "./Pages/MainPage/MainPage";
 import TrainingCalendar from "./Pages/TrainingCalendar/TrainingCalendar";
 import CalculationPage from "./Pages/CalculationsPage/CalculationsPage";
+import CalorieСheckPage from "./Pages/CalorieСheckPage/CalorieСheckPage";
+
 const App: React.FC = () => {
   return (
     <div >
@@ -15,6 +17,8 @@ const App: React.FC = () => {
         <Route path="/main" element={<MainPage />} /> 
         <Route path="/trainingCalendar" element={<TrainingCalendar />} /> 
         <Route path="/calculators" element={<CalculationPage />} /> 
+        <Route path="/calories" element={<CalorieСheckPage />} /> 
+
       </Routes>
     </div>
   );

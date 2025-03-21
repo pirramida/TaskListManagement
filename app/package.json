@@ -5,7 +5,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@google-cloud/vision": "^5.1.0",
     "@mui/material": "^6.4.8",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -14,6 +17,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.0.11",
     "@types/react-dom": "^19.0.4",
+    "axios": "^1.8.4",
     "gapi-script": "^1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
