@@ -140,13 +140,13 @@ const ClientForm: React.FC = () => {
       // В реальном приложении здесь будет fetch/axios запрос
       console.log("Отправка данных на сервер:", client);
       
-      setSubmitSuccess(true);
+      setSubmitSuccess(true); 
       // setEditMode(false);
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
       console.error("Ошибка при отправке:", error);
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); 
     }
   };
 
