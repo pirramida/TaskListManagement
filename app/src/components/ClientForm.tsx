@@ -32,6 +32,7 @@ import {
   Save,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
+import { apiFetch } from '../utils/refreshToken';
 
 // Стилизованные компоненты
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -57,29 +58,9 @@ const ColorButton = styled(Button)(({ theme }) => ({
   borderRadius: "8px",
 }));
 
-interface Client {
-  id: number;
-  name: string;
-  age: number;
-  gender: string;
-  phone: string;
-  email: string;
-  photo: string | null;
-  goal: string;
-  activityLevel: string;
-  injuries: string;
-  trainingHistory: string[];
-  weight: number;
-  height: number;
-  chest: number;
-  waist: number;
-  hips: number;
-  bodyFat: number;
-}
-
 const ClientForm: React.FC = () => {
   // Состояние для одного клиента
-  const [client, setClient] = useState<Client>({
+  const [client, setClient] = useState({
     id: 1,
     name: "",
     age: 0,
@@ -99,6 +80,27 @@ const ClientForm: React.FC = () => {
     bodyFat: 0,
   });
 
+  const [clientReset, setClientReset] = useState({
+    id: 1,
+    name: "",
+    age: 0,
+    gender: "Male",
+    phone: "",
+    email: "",
+    photo: null,
+    goal: "",
+    activityLevel: "",
+    injuries: "",
+    trainingHistory: [],
+    weight: 0,
+    height: 0,
+    chest: 0,
+    waist: 0,
+    hips: 0,
+    bodyFat: 0,
+  });
+  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [editMode, setEditMode] = useState(true);
@@ -110,7 +112,7 @@ const ClientForm: React.FC = () => {
       return 0.515 * weight + 0.16 * age - 9.4 * 0 - 4.7;
     }
   };
-
+  
   useEffect(() => {
     if (client.weight > 0 && client.age > 0) {
       const calculatedBodyFat = calculateBodyFat(client.weight, client.age, client.gender);
@@ -118,7 +120,7 @@ const ClientForm: React.FC = () => {
     }
   }, [client.weight, client.age, client.gender]);
 
-  const handleInputChange = (field: keyof Client, value: any) => {
+  const handleInputChange = (field: keyof, value: any) => {
     setClient(prev => ({ ...prev, [field]: value }));
   };
 
@@ -134,15 +136,12 @@ const ClientForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Имитация отправки на сервер
-      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // В реальном приложении здесь будет fetch/axios запрос
-      console.log("Отправка данных на сервер:", client);
+      const newClient = await apiFetch('/clients', 'POST', client);
+
       
-      setSubmitSuccess(true); 
+      console.log('response  ', newClient);
       // setEditMode(false);
-      setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
       console.error("Ошибка при отправке:", error);
     } finally {
