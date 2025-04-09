@@ -6,6 +6,7 @@ import MainPage from "./Pages/MainPage/MainPage";
 import TrainingCalendar from "./Pages/TrainingCalendar/TrainingCalendar";
 import CalculationPage from "./Pages/CalculationsPage/CalculationsPage";
 import CalorieСheckPage from "./Pages/CalorieСheckPage/CalorieСheckPage";
+import AllClientsPage from "./Pages/AllClientsPage/AllClientsPage";
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
         <Route path="/trainingCalendar" element={<TrainingCalendar />} /> 
         <Route path="/calculators" element={<CalculationPage />} /> 
         <Route path="/calories" element={<CalorieСheckPage />} /> 
+        <Route path="/allClients" element={<AllClientsPage />} /> 
 
       </Routes>
     </div>

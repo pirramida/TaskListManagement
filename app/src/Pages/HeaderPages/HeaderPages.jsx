@@ -26,6 +26,14 @@ const HeaderPages = () => {
         </Button>
         <Button
           component={Link}
+          to="/allClients"
+          className={HPStyles.customButton}
+
+        >
+          Юлькина клиентура
+        </Button>
+        <Button
+          component={Link}
           to="/trainingCalendar"
           className={HPStyles.customButton}
 

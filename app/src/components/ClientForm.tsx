@@ -23,7 +23,6 @@ import {
   PhotoCamera,
   FitnessCenter,
   Person,
-  Email,
   Phone,
   Cake,
   Scale,
@@ -32,7 +31,8 @@ import {
   Save,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import { apiFetch } from '../utils/refreshToken';
+import { fetchWithRetry } from '../utils/refreshToken';
+import { addToast } from "../utils/addToast";
 
 // Стилизованные компоненты
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -61,12 +61,10 @@ const ColorButton = styled(Button)(({ theme }) => ({
 const ClientForm: React.FC = () => {
   // Состояние для одного клиента
   const [client, setClient] = useState({
-    id: 1,
     name: "",
     age: 0,
     gender: "Male",
     phone: "",
-    email: "",
     photo: null,
     goal: "",
     activityLevel: "",
@@ -81,12 +79,10 @@ const ClientForm: React.FC = () => {
   });
 
   const [clientReset, setClientReset] = useState({
-    id: 1,
     name: "",
     age: 0,
     gender: "Male",
     phone: "",
-    email: "",
     photo: null,
     goal: "",
     activityLevel: "",
@@ -120,7 +116,7 @@ const ClientForm: React.FC = () => {
     }
   }, [client.weight, client.age, client.gender]);
 
-  const handleInputChange = (field: keyof, value: any) => {
+  const handleInputChange = (field: any, value: any) => {
     setClient(prev => ({ ...prev, [field]: value }));
   };
 
@@ -136,11 +132,12 @@ const ClientForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      
-      const newClient = await apiFetch('/clients', 'POST', client);
-
-      
-      console.log('response  ', newClient);
+      const response = await fetchWithRetry('/clients', 'POST', { form: client } );
+      if (response.message === 'Клиент добавлен') {
+        addToast('acceptedNewClientAdd', 'success', `${client.name} успешно добавлен!`, 1000);
+      } else {
+        addToast('connectionLost', 'error', 'Ошибка соединения с сервером...!', 1000 );
+      }
       // setEditMode(false);
     } catch (error) {
       console.error("Ошибка при отправке:", error);
@@ -281,22 +278,6 @@ const ClientForm: React.FC = () => {
                 size="small"
                 InputProps={{
                   startAdornment: <Phone color="action" sx={{ mr: 1 }} />,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={client.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                required
-                disabled={!editMode}
-                size="small"
-                InputProps={{
-                  startAdornment: <Email color="action" sx={{ mr: 1 }} />,
                 }}
               />
             </Grid>
@@ -518,10 +499,6 @@ const ClientForm: React.FC = () => {
                   <Typography>
                     <Phone fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
                     {client.phone}
-                  </Typography>
-                  <Typography>
-                    <Email fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
-                    {client.email}
                   </Typography>
                 </Grid>
 

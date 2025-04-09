@@ -1,26 +1,17 @@
 import axios from "axios";
+import { addToast } from './addToast.jsx'
 
-const API_BASE_URL = 'http://localhost:5000'; //uncomment for prod
+const BASE_URL = 'http://localhost:5000';
 
-export const apiFetch = async (endpoint, method = 'GET', body = null, customHeaders = {}) => {
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...customHeaders,
-    },
-  };
 
-  if (body) {
-    options.body = JSON.stringify(body);
+export const fetchWithRetry = async (halfUrl, method, data, navigate, options = {}) => {
+  const url = `${BASE_URL.replace(/\/$/, '')}/${halfUrl.replace(/^\//, '')}`;
+
+  try {
+    const response = await axios({ method, url, data, withCredentials: true, ...options });
+    return response.data;
+  } catch (error) {
+    addToast('connectionLost', 'error', 'Ошибка соединения с сервером...!', 1000 )
+    throw error;
   }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || 'Ошибка при выполнении запроса');
-  }
-
-  return response.json();
 };

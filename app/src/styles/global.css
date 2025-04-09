@@ -1,0 +1,141 @@
+:root {
+    /* Светлая тема (по умолчанию) */
+    --color-green-vortex:rgb(176, 249, 183);
+    --color-hover: rgb(176, 249, 183);
+    --color-primary: rgb(248, 248, 248);
+    --color-secondary: rgb(176, 155, 236);
+    --color-option : rgba(217, 216, 247, 1);
+    --color-common-button : rgb(176, 249,183);
+    --color-text: black;
+    --color-border: black;
+    --color-background: white;
+    --color-card-background: #f9f9f9;
+    --color-card-hover: #e0e0e0;
+    --color-field: white;
+    --error-delete-color: rgb(250, 160, 165);
+    --color-nav-background: rgb(176, 249, 183);
+    --color-nav-icon: rgba(0, 0, 0, 0.2);
+    --color-tab-hover: rgb(215,215,215);
+    --color-disabled-background: rgb(224,224,224);
+    --color-disabled-text: rgb(166,166,166);
+    --color-chart-bar1: black;
+    --color-chart-fill: rgb(204,204,204);
+    --color-pagination: rgb(176, 249, 183);
+    --color-pagination-button: white;
+    --color-row-head: rgb(46,170,89);
+    --color-provider-tale-hover: #21501a;
+    --color-bottom-border-before:#356d36;
+    --color-bottom-border-after:#4caf50;
+    --color-label: rgb(0, 77, 31);
+    --color-head-active: #21501a;
+    --color-loginPage-div: rgb(176, 249, 183);
+    --color-loginButton: #1C1E1B;
+    --color-track:white;
+    --color-field-available: #ffeb8a;
+    --color-manufacture-header: rgb(230, 229, 229);
+  
+  
+  
+    --color-button-hover: #4caf50;
+    --color-button-text: white;
+    --color-divider: #ccc;
+    --color-tab-indicator: #4caf50;
+    --color-tab-text: #66bb6a;
+    --color-tab-selected: green;
+  }
+  
+  [data-theme="dark"] {
+    /* Темная тема */
+    --color-green-vortex:rgb(14,22,33);
+    --color-hover: rgba(51, 42, 172, 0.2);
+    --color-primary: rgb(23,33,43);
+    --color-secondary: #ff6b6b;
+    --color-option : rgb(91, 87, 206);
+    --color-common-button : rgb(76, 126, 81);
+    --color-text: white;
+    --color-border: rgb(0, 0, 0);
+    --color-background: rgb(14,22,33);
+    --color-card-background: rgb(192, 192, 192);
+    --color-card-hover: #333;
+    --color-field: rgb(165, 165, 165);
+    --error-delete-color: rgb(241, 65, 74);
+    --color-nav-background: rgb(14,22,33);
+    --color-nav-icon: rgba(51, 42, 172, 0.2);
+    --color-tab-hover: rgb(35, 38, 48);
+    --color-disabled-background: rgb(224,224,224);
+    --color-disabled-text: rgb(166,166,166);
+    --color-chart-bar1: rgb(84, 110, 255);
+    --color-chart-fill: rgba(44, 54, 65, 0.3);
+    --color-pagination: rgb(23,33,43);
+    --color-pagination-button: rgba(51, 42, 172, 0.2);
+    --color-row-head: rgb(23,33,43);
+    --color-provider-tale-hover: #c1c1c1;
+    --color-bottom-border-before:#ffffff;
+    --color-bottom-border-after:#4caf50;
+    --color-label: #4caf50; 
+    --color-head-active: #c1c1c1;
+    --color-loginPage-div: rgb(23,33,43);
+    --color-loginButton: rgb(91, 87, 206);
+    --color-track:rgb(14,22,33);
+    --color-field-available: #a38aff2c;
+    --color-manufacture-header: rgb(26, 20, 20);
+  
+  
+  
+  
+  
+    --color-button-hover: #ff6b6b;
+    --color-button-text: black;
+    --color-divider: #444;
+    --color-tab-indicator: #ff6b6b;
+    --color-tab-text: #ff6b6b;
+    --color-tab-selected: #ff6b6b;
+  }
+  
+  
+  .ReactVirtualized__Table__row:hover {
+    background-color: transparent !important; /* Убираем изменение фона */
+  }
+  
+  .MuiInputLabel-root {
+    color: gray !important; /* Цвет лейбла */
+  }
+  
+  .MuiInputBase-root {
+    border-bottom: 2px solid green
+  }
+  
+  .MuiInput-root .MuiSvgIcon-root {
+    color: var(--color-text) !important;
+  }
+  
+  .MuiInputBase-input {
+    color: var(--color-text) !important; /* Цвет текста */
+  }
+  
+  .common-green-button {
+    background-color: var(--color-common-button) !important; /* Цвет фона */
+    color: var(--color-text) !important; /* Цвет текста */
+    transition: transform 0.2s ease; /* Плавная анимация */
+  }
+  
+  .common-green-button:hover {
+    transform: scale(1.1); /* Увеличение при наведении */
+    background-color: var(--color-common-button) !important; /* Цвет фона при наведении */
+  }
+  
+  .common-green-button:disabled {
+    background-color: var(--color-disabled-background) !important; /* Фон для отключенной кнопки */
+    color: var(--color-disabled-text) !important; /* Цвет текста для отключенной кнопки */
+    pointer-events: none; 
+  }
+  
+  .MuiInputBase-input.MuiOutlinedInput-input.Mui-disabled {
+    -webkit-text-fill-color: gray; 
+  }
+  
+  .MuiInputBase-input.MuiFilledInput-input.Mui-disabled {
+    -webkit-text-fill-color: gray; 
+  }
+  
+  
