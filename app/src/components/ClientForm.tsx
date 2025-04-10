@@ -134,6 +134,7 @@ const ClientForm: React.FC = () => {
     try {
       const response = await fetchWithRetry('/clients', 'POST', { form: client } );
       if (response.message === 'Клиент добавлен') {
+        setClient(clientReset);
         addToast('acceptedNewClientAdd', 'success', `${client.name} успешно добавлен!`, 1000);
       } else {
         addToast('connectionLost', 'error', 'Ошибка соединения с сервером...!', 1000 );
