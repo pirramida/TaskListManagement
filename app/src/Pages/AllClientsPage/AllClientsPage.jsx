@@ -132,9 +132,15 @@ const AllClientsPage = () => {
                                 boxShadow: 3,
                                 transition: 'all 0.3s ease',
                                 '&:hover': {
+                                    cursor: 'pointer',
                                     transform: 'translateY(-8px)',
                                     boxShadow: '0 10px 20px rgba(0,0,0,0.15)'
                                 }
+                                
+                            }}
+                            onClick={() => {
+                                setSelectedClient(client);
+                                setIsDialogOpen(true);
                             }}>
                                 {/* Шапка карточки */}
                                 <Box
@@ -150,10 +156,7 @@ const AllClientsPage = () => {
                                     ? 'linear-gradient(135deg, #1976d2 0%, #64b5f6 100%)' 
                                     : 'linear-gradient(135deg, #d81b60 0%, #f06292 100%)'
                                 }}
-                                onClick={() => {
-                                    setSelectedClient(client);
-                                    setIsDialogOpen(true);
-                                }}
+                                
                                 >
 
                                     <Avatar sx={{ 
@@ -282,30 +285,7 @@ const AllClientsPage = () => {
             <>
                 <CardClient client={selectedClient} open={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
             </>
-}
-            
-            {/* <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle>Детали клиента</DialogTitle>
-            <DialogContent dividers>
-                {selectedClient && (
-                <>
-                    <Typography gutterBottom><strong>Имя:</strong> {selectedClient.name}</Typography>
-                    <Typography gutterBottom><strong>Возраст:</strong> {selectedClient.age} лет</Typography>
-                    <Typography gutterBottom><strong>Рост:</strong> {selectedClient.height} см</Typography>
-                    <Typography gutterBottom><strong>Вес:</strong> {selectedClient.weight} кг</Typography>
-                    <Typography gutterBottom><strong>Пол:</strong> {selectedClient.gender === 'Male' ? 'Мужской' : 'Женский'}</Typography>
-                    <Typography gutterBottom><strong>Цель:</strong> {selectedClient.goal}</Typography>
-                    <Typography gutterBottom><strong>Активность:</strong> {selectedClient.activityLevel}</Typography>
-                    <Typography gutterBottom><strong>Телефон:</strong> {selectedClient.phone}</Typography>
-                    <Typography gutterBottom><strong>Дата регистрации:</strong> {new Date(selectedClient.createdAt).toLocaleDateString()}</Typography>
-                </>
-                )}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setIsDialogOpen(false)}>Закрыть</Button>
-            </DialogActions>
-            </Dialog> */}
-
+            }        
         </>
     );
 };
