@@ -5,6 +5,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import AddClientPage from './Pages/AddClientPage/AddClientPage';
 import { BrowserRouter } from "react-router-dom"; // Импортируем BrowserRouter
+import { SnackbarProvider } from './utils/addToast';
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -12,7 +14,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <SnackbarProvider>
+        <App />
+      </SnackbarProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

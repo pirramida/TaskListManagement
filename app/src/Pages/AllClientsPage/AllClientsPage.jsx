@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchWithRetry } from "../../utils/refreshToken";
-import { addToast } from "../../utils/addToast";
+import { addToast, useSnackbarContext  } from "../../utils/addToast";
 import CardClient from "../../components/CardClient";
 
 import { 
@@ -37,19 +37,22 @@ const AllClientsPage = () => {
     const [filterPhone, setFilterPhone] = useState('');
     const [selectedClient, setSelectedClient] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    
+    const { addSnackBar } = useSnackbarContext();
 
 
     useEffect(() => {
-        const fetchData = async () => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
         try {
             const response = await fetchWithRetry('/clients', 'GET');
             setClients(response);
         } catch (error) {
             addToast('allClientsError1', 'error', 'Ошибка в получении данных клиентов с сервера', 1000);
         }
-        };
-        fetchData();
-    }, []);
+    };
 
     const getActivityColor = (activity) => {
         switch(activity) {
@@ -283,7 +286,7 @@ const AllClientsPage = () => {
             </Container>
             {selectedClient !== null && 
             <>
-                <CardClient client={selectedClient} open={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
+                <CardClient client={selectedClient} setSelectedClient={setSelectedClient} open={isDialogOpen} onClose={() => setIsDialogOpen(false)} fetchWithRetry={fetchWithRetry} addToast={addToast} addSnackBar={addSnackBar} fetchData={fetchData}/>
             </>
             }        
         </>

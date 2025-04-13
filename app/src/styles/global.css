@@ -1,8 +1,10 @@
-:root {
     /* Светлая тема (по умолчанию) */
+
+
+:root {
     --color-green-vortex:rgb(176, 249, 183);
     --color-hover: rgb(176, 249, 183);
-    --color-primary: rgb(248, 248, 248);
+    --color-primary: rgb(219, 95, 95);
     --color-secondary: rgb(176, 155, 236);
     --color-option : rgba(217, 216, 247, 1);
     --color-common-button : rgb(176, 249,183);
