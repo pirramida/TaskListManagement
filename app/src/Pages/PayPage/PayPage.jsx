@@ -19,7 +19,11 @@ import {
   Autocomplete,
   Chip,
   Divider,
-  IconButton
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Avatar,
+  Slide,
 } from '@mui/material';
 import { 
   Add, 
@@ -38,6 +42,24 @@ import ruLocale from 'date-fns/locale/ru';
 import { fetchWithRetry } from '../../utils/refreshToken';
 import { addToast } from '../../utils/addToast';
 import dayjs from 'dayjs';
+import PaymentDetailsPage from '../../components/MoreDataPayPage';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import PaidIcon from '@mui/icons-material/Paid';
+import PersonIcon from '@mui/icons-material/Person';
+import EventIcon from '@mui/icons-material/Event';
+import PhoneIcon from '@mui/icons-material/Phone';
+import NotesIcon from '@mui/icons-material/Notes';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const PayPage = () => {
   // Состояние для диалога добавления оплаты
@@ -56,14 +78,15 @@ const PayPage = () => {
   const [isExpiryDateManuallySet, setIsExpiryDateManuallySet] = useState(false);
   const [customPaymentType, setCustomPaymentType] = useState("");
 
+  const [openDetils, setOpenDetils] = useState(false);
 
   // История платежей
-  const [payments, setPayments] = useState([
-    { id: 1, date: '2023-05-15', client: 'Иванов Алексей', amount: 5000, type: '10 тренировок', status: 'Завершено' },
-    { id: 2, date: '2023-06-01', client: 'Петрова Мария', amount: 3000, type: 'Разовая', status: 'Завершено' },
-    { id: 3, date: '2023-06-10', client: 'Сидоров Дмитрий', amount: 8000, type: '20 тренировок', status: 'Активен' },
-    { id: 4, date: '2023-06-18', client: 'Кузнецова Анна', amount: 3500, type: 'Разовая', status: 'Завершено' },
-  ]);
+  const [payment, setPayment] = useState();
+  const [isEditing, setIsEditing] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [payments, setPayments] = useState([]);
 
   // Стандартные суммы оплаты
   const presetAmounts = [2400, 22000, 40000];
@@ -80,6 +103,10 @@ const PayPage = () => {
     } 
   }, [openDialog]);
 
+  useEffect(() => {
+    fetchDataPayList();
+  }, []);
+
   const generateReadableId = () => {
     const date = new Date();
     const dateString = date.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD
@@ -87,8 +114,17 @@ const PayPage = () => {
     return `pay_${dateString}_${randomPart}`;
   };
 
+  const fetchDataPayList = async () => {
+    try {
+      const response = await fetchWithRetry('/payment_history', 'GET');
+      setPayments(response)
+    } catch (error) {
+      addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
+    }
+  };
+
   // Добавление новой оплаты
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     if (client && amount && paymentDate) {
       const newPayment = {
         id: generateReadableId(),
@@ -101,8 +137,22 @@ const PayPage = () => {
         customPaymentType: customPaymentType,
         isExpiryDateManuallySet: isExpiryDateManuallySet,
         notes: notes,
+        phone: client.phone,
+        method: 'card',
       };
+      try {
+        const response = await fetchWithRetry('/payment_history', 'POST', { fromData: newPayment });
+        
+        if (!response.data.success) {
+          addToast('error', 'error', 'Ошибка принятия данных с сервер!', 1000);
+          return;
+        } 
 
+
+        fetchDataPayList();
+      } catch (error) {
+        addToast('error', 'error', 'Ошибка принятия данных на сервер!', 1000);
+      }
       console.log('newPaymentnewPanewPaymentyment',newPayment);
       setPayments([newPayment, ...payments]);
       handleCloseDialog(); // очищает всё после сохранения
@@ -123,6 +173,60 @@ const PayPage = () => {
     resetDate.setMonth(resetDate.getMonth() + 6);
     setExpiryDate(resetDate);
   };
+
+  const handleOpen = (client) => {
+    setPayment(client);
+    setOpenDetils(true);
+  };
+
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+    // Здесь можно добавить логику сохранения изменений
+    console.log('Данные сохранены:', payment);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setPayment(prev => ({ ...prev, [name]: value }));
+  };
+
+  const getFieldIcon = (name) => {
+    switch(name) {
+      case 'amount': return <PaidIcon fontSize="small" />;
+      case 'client': return <PersonIcon fontSize="small" />;
+      case 'date':
+      case 'dateTo': return <EventIcon fontSize="small" />;
+      case 'phone': return <PhoneIcon fontSize="small" />;
+      case 'notes': return <NotesIcon fontSize="small" />;
+      case 'method': return <CreditCardIcon fontSize="small" />;
+      case 'type': return <FitnessCenterIcon fontSize="small" />;
+      case 'status': return <CheckCircleIcon fontSize="small" />;
+      default: return null;
+    }
+  };
+
+  const renderStatusChip = (status) => {
+    let color = 'default';
+    if (status === 'Активен') color = 'success';
+    if (status === 'Просрочен') color = 'error';
+    if (status === 'Ожидает') color = 'warning';
+
+    return (
+      <Chip
+        label={status}
+        color={color}
+        size="small"
+        icon={<CheckCircleIcon fontSize="small" />}
+        sx={{ borderRadius: '6px', fontWeight: 500 }}
+      />
+    );
+  };
+
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
@@ -244,9 +348,9 @@ const PayPage = () => {
             </TableHead>
             <TableBody>
               {payments.map((payment) => (
-                <TableRow key={payment.id} hover>
-                  <TableCell>{payment.date}</TableCell>
-                  <TableCell>{payment.client}</TableCell>
+                <TableRow key={payment?.id} hover>
+                  <TableCell>{payment?.date}</TableCell>
+                  <TableCell>{payment?.client}</TableCell>
                   <TableCell>
                     <Box sx={{ 
                       fontWeight: 600, 
@@ -255,33 +359,51 @@ const PayPage = () => {
                       alignItems: 'center'
                     }}>
                       <AttachMoney fontSize="small" sx={{ mr: 0.5 }} />
-                      {payment.amount.toLocaleString('ru-RU')} ₽
+                      {payment?.amount.toLocaleString('ru-RU')} ₽
                     </Box>
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={payment.type} 
+                      label={payment?.type} 
                       size="small"
                       sx={{ 
-                        background: payment.type === 'Разовая' ? '#e3f2fd' : 
-                                  payment.type === '10 тренировок' ? '#e8f5e9' : '#fff8e1',
-                        color: payment.type === 'Разовая' ? '#1565c0' : 
-                               payment.type === '10 тренировок' ? '#2e7d32' : '#ff8f00'
+                        background: payment?.type === 'Разовая' ? '#e3f2fd' : 
+                                  payment?.type === '10 тренировок' ? '#e8f5e9' : '#fff8e1',
+                        color: payment?.type === 'Разовая' ? '#1565c0' : 
+                               payment?.type === '10 тренировок' ? '#2e7d32' : '#ff8f00'
                       }}
                     />
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={payment.status} 
+                      label={payment?.status} 
                       size="small"
                       sx={{ 
-                        background: payment.status === 'Активен' ? '#e8f5e9' : '#ffebee',
-                        color: payment.status === 'Активен' ? '#2e7d32' : '#c62828'
+                        background: payment?.status === 'Активен' ? '#e8f5e9' : '#ffebee',
+                        color: payment?.status === 'Активен' ? '#2e7d32' : '#c62828'
                       }}
                     />
                   </TableCell>
                   <TableCell>
-                    <Button size="small">Подробнее</Button>
+                    <Button 
+                      variant="outlined" 
+                      size="small" 
+                      color="primary"
+                      onClick={() => handleOpen(payment.client)}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                          backgroundColor: '#f0f7ff',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                        }
+                      }}
+                    >
+                      Подробнее
+                    </Button>
+                    {/* <PaymentDetailsPage open={openDetils} close={setOpenDetils} client={client} /> */}
+
                   </TableCell>
                 </TableRow>
               ))}
@@ -289,6 +411,7 @@ const PayPage = () => {
           </Table>
         </TableContainer>
       </Paper>
+
 
       {/* Диалог добавления оплаты */}
       <Dialog 
@@ -497,8 +620,289 @@ const PayPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+      open={openDetils}
+      fullWidth
+      maxWidth="md"
+      onClose={() => setOpenDetils(false)}
+      TransitionComponent={Transition}
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          borderRadius: isMobile ? 0 : '12px',
+          background: theme.palette.background.paper,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        background: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
+        py: 2,
+        position: 'relative'
+      }}>
+        <Box display="flex" alignItems="center">
+          {isMobile && (
+            <IconButton 
+              edge="start" 
+              color="inherit" 
+              onClick={() => setOpenDetils(false)}
+              sx={{ mr: 1 }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Детали платежа
+          </Typography>
+        </Box>
+        {!isMobile && (
+          <IconButton 
+            onClick={() => setOpenDetils(false)}
+            sx={{
+              position: 'absolute',
+              right: 16,
+              top: 12,
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        )}
+      </DialogTitle>
+      
+      <DialogContent dividers sx={{ background: theme.palette.grey[50] }}>
+        <Paper elevation={0} sx={{ 
+          p: 3, 
+          borderRadius: 2,
+          background: 'transparent'
+        }}>
+          <Box display="flex" justifyContent="flex-end" mb={3}>
+            {isEditing ? (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<SaveIcon />}
+                onClick={handleSave}
+                sx={{ 
+                  borderRadius: '8px',
+                  px: 3,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    boxShadow: theme.shadows[2]
+                  }
+                }}
+              >
+                Сохранить изменения
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<EditIcon />}
+                onClick={handleEdit}
+                sx={{ 
+                  borderRadius: '8px',
+                  px: 3,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  borderWidth: '2px',
+                  '&:hover': {
+                    borderWidth: '2px'
+                  }
+                }}
+              >
+                Редактировать
+              </Button>
+            )}
+          </Box>
+
+          <Box 
+            display="grid" 
+            gridTemplateColumns={isMobile ? '1fr' : 'repeat(2, 1fr)'} 
+            gap={3}
+          >
+            <Field 
+              label="Сумма" 
+              name="amount" 
+              value={payment?.amount} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('amount')}
+              suffix="₽"
+            />
+            <Field 
+              label="Клиент" 
+              name="client" 
+              value={payment?.client} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('client')}
+            />
+            <Field 
+              label="Тип платежа" 
+              name="customPaymentType" 
+              value={payment?.customPaymentType} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('customPaymentType')}
+            />
+            <Field 
+              label="Дата" 
+              name="date" 
+              value={payment?.date} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('date')}
+              type={isEditing ? 'date' : 'text'}
+            />
+            <Field 
+              label="Дата окончания" 
+              name="dateTo" 
+              value={payment?.dateTo} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('dateTo')}
+              type={isEditing ? 'date' : 'text'}
+            />
+            <Field 
+              label="Метод оплаты" 
+              name="method" 
+              value={payment?.method} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('method')}
+            />
+            <Field 
+              label="Примечания" 
+              name="notes" 
+              value={payment?.notes} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('notes')}
+              multiline
+              rows={3}
+            />
+            <Field 
+              label="Телефон" 
+              name="phone" 
+              value={payment?.phone} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('phone')}
+            />
+            <Field 
+              label="Статус" 
+              name="status" 
+              value={payment?.status} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('status')}
+              customDisplay={!isEditing && renderStatusChip(payment?.status)}
+            />
+            <Field 
+              label="Тип" 
+              name="type" 
+              value={payment?.type} 
+              editing={isEditing} 
+              onChange={handleChange}
+              icon={getFieldIcon('type')}
+            />
+          </Box>
+        </Paper>
+      </DialogContent>
+      
+      <DialogActions sx={{ 
+        background: theme.palette.grey[100],
+        px: 3,
+        py: 2
+      }}>
+        <Button 
+          onClick={() => setOpenDetils(false)} 
+          sx={{ 
+            borderRadius: '8px',
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 500
+          }}
+        >
+          Закрыть
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </Box>
+    
+  );
+  
+};
+
+const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisplay, ...props }) => {
+  return (
+    <Box sx={{
+      background: 'white',
+      borderRadius: '8px',
+      p: 2,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }
+    }}>
+      <Box display="flex" alignItems="center" mb={1}>
+        {icon && (
+          <Avatar sx={{ 
+            width: 24, 
+            height: 24, 
+            mr: 1,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText'
+          }}>
+            {icon}
+          </Avatar>
+        )}
+        <Typography variant="subtitle2" color="textSecondary">
+          {label}
+        </Typography>
+      </Box>
+      
+      {editing ? (
+        <TextField
+          name={name}
+          value={value || ''}
+          onChange={onChange}
+          fullWidth
+          variant="outlined"
+          size="small"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '6px'
+            }
+          }}
+          InputProps={{
+            endAdornment: suffix && (
+              <Typography variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                {suffix}
+              </Typography>
+            )
+          }}
+          {...props}
+        />
+      ) : (
+        customDisplay || (
+          <Typography variant="body1" sx={{ 
+            fontWeight: 500,
+            color: value ? 'text.primary' : 'text.disabled'
+          }}>
+            {value || '—'} {suffix}
+          </Typography>
+        )
+      )}
     </Box>
   );
 };
-
 export default PayPage;
