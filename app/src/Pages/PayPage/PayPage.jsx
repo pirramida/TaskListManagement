@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -35,6 +35,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import ruLocale from 'date-fns/locale/ru';
+import { fetchWithRetry } from '../../utils/refreshToken';
+import { addToast } from '../../utils/addToast';
+import dayjs from 'dayjs';
 
 const PayPage = () => {
   // Состояние для диалога добавления оплаты
@@ -44,15 +47,15 @@ const PayPage = () => {
   const [amount, setAmount] = useState('');
   const [paymentType, setPaymentType] = useState('Разовая');
   const [notes, setNotes] = useState('');
+  const [clients, setClients] = useState();
+  const [expiryDate, setExpiryDate] = useState(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 6);
+    return date;
+  });
+  const [isExpiryDateManuallySet, setIsExpiryDateManuallySet] = useState(false);
+  const [customPaymentType, setCustomPaymentType] = useState("");
 
-  // Список клиентов для поиска
-  const clients = [
-    { id: 1, name: 'Иванов Алексей' },
-    { id: 2, name: 'Петрова Мария' },
-    { id: 3, name: 'Сидоров Дмитрий' },
-    { id: 4, name: 'Кузнецова Анна' },
-    { id: 5, name: 'Смирнов Владимир' },
-  ];
 
   // История платежей
   const [payments, setPayments] = useState([
@@ -63,21 +66,46 @@ const PayPage = () => {
   ]);
 
   // Стандартные суммы оплаты
-  const presetAmounts = [3000, 5000, 8000];
+  const presetAmounts = [2400, 22000, 40000];
+
+  useEffect(() => {
+    try {
+      const fetchData = async() => {
+        const response = await fetchWithRetry('/clients', 'GET');
+        setClients(response);
+      }
+      fetchData();
+    } catch (error) {
+      console.error('Произошла ошибка в получении клиентов!');
+    } 
+  }, [openDialog]);
+
+  const generateReadableId = () => {
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD
+    const randomPart = Math.random().toString(36).substring(2, 10); // Генерирует случайную строку
+    return `pay_${dateString}_${randomPart}`;
+  };
 
   // Добавление новой оплаты
   const handleAddPayment = () => {
     if (client && amount && paymentDate) {
       const newPayment = {
-        id: payments.length + 1,
+        id: generateReadableId(),
         date: paymentDate.toISOString().split('T')[0],
         client: client.name,
         amount: parseInt(amount),
         type: paymentType,
-        status: 'Активен'
+        status: 'Активен',
+        dateTo: expiryDate.toISOString().split('T')[0],
+        customPaymentType: customPaymentType,
+        isExpiryDateManuallySet: isExpiryDateManuallySet,
+        notes: notes,
       };
+
+      console.log('newPaymentnewPanewPaymentyment',newPayment);
       setPayments([newPayment, ...payments]);
-      handleCloseDialog();
+      handleCloseDialog(); // очищает всё после сохранения
     }
   };
 
@@ -87,6 +115,13 @@ const PayPage = () => {
     setAmount('');
     setPaymentType('Разовая');
     setNotes('');
+    setCustomPaymentType('');
+    setIsExpiryDateManuallySet(false);
+    setPaymentDate(new Date());
+  
+    const resetDate = new Date();
+    resetDate.setMonth(resetDate.getMonth() + 6);
+    setExpiryDate(resetDate);
   };
 
   return (
@@ -357,6 +392,18 @@ const PayPage = () => {
               <MenuItem value="20 тренировок">Пакет 20 тренировок</MenuItem>
               <MenuItem value="Другое">Другое</MenuItem>
             </TextField>
+            
+            {paymentType === "Другое" && (
+              <Box sx={{ mt: 2 }}>
+                <TextField
+                  label="Укажите тип оплаты"
+                  fullWidth
+                  value={customPaymentType}
+                  onChange={(e) => setCustomPaymentType(e.target.value)}
+                  placeholder="Например: Абонемент на месяц, Корпоративный пакет и т.д."
+                />
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
@@ -366,7 +413,15 @@ const PayPage = () => {
             <LocalizationProvider dateAdapter={AdapterDateFns} locale={ruLocale}>
               <DatePicker
                 value={paymentDate}
-                onChange={(newValue) => setPaymentDate(newValue)}
+                onChange={(newValue) => {
+                  setPaymentDate(newValue);
+                  // При изменении даты оплаты обновляем дату окончания (если она не была изменена вручную)
+                  if (!isExpiryDateManuallySet && newValue) {
+                    const expiryDate = new Date(newValue);
+                    expiryDate.setMonth(expiryDate.getMonth() + 6);
+                    setExpiryDate(expiryDate);
+                  }
+                }}
                 renderInput={(params) => <TextField {...params} fullWidth />}
                 inputFormat="dd.MM.yyyy"
                 components={{
@@ -375,6 +430,32 @@ const PayPage = () => {
               />
             </LocalizationProvider>
           </Box>
+
+          {(paymentType.includes("тренировок") || paymentType === "Другое") && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                Действителен до
+              </Typography>
+              <LocalizationProvider dateAdapter={AdapterDateFns} locale={ruLocale}>
+                <DatePicker
+                  value={expiryDate}
+                  onChange={(newValue) => {
+                    setExpiryDate(newValue);
+                    setIsExpiryDateManuallySet(true);
+                  }}
+                  renderInput={(params) => (
+                    <TextField 
+                      {...params} 
+                      fullWidth
+                      helperText={!isExpiryDateManuallySet ? "По умолчанию: 6 месяцев с даты оплаты" : ""}
+                    />
+                  )}
+                  inputFormat="dd.MM.yyyy"
+                  minDate={paymentDate}
+                />
+              </LocalizationProvider>
+            </Box>
+          )}
 
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
