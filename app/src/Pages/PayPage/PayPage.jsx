@@ -35,6 +35,7 @@ import {
   Print,
   FileDownload
 } from '@mui/icons-material';
+
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -79,6 +80,7 @@ const PayPage = () => {
   const [customPaymentType, setCustomPaymentType] = useState("");
 
   const [openDetils, setOpenDetils] = useState(false);
+  const [filteredPayments, setFilteredPayments] = useState(payments);
 
   // История платежей
   const [payment, setPayment] = useState();
@@ -175,6 +177,7 @@ const PayPage = () => {
   };
 
   const handleOpen = (client) => {
+    console.log(client);
     setPayment(client);
     setOpenDetils(true);
   };
@@ -227,6 +230,50 @@ const PayPage = () => {
     );
   };
 
+  // Пример использования:
+  // В вашем основном компоненте:
+
+  const handleApplyFilters = (filters) => {
+    let result = [...payments];
+    
+    // Фильтрация по дате
+    if (filters.dateFrom) {
+      result = result.filter(p => new Date(p.date) >= new Date(filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      result = result.filter(p => new Date(p.date) <= new Date(filters.dateTo));
+    }
+    
+    // Фильтрация по имени
+    if (filters.clientName) {
+      result = result.filter(p => 
+        p.client.toLowerCase().includes(filters.clientName.toLowerCase())
+      );
+    }
+    
+    // Фильтрация по сумме
+    if (filters.amountType && filters.amountType !== 'custom') {
+      const [min, max] = filters.amountType.split('-').map(Number);
+      result = result.filter(p => p.amount >= min && p.amount <= max);
+    } else if (filters.customAmount) {
+      const amount = Number(filters.customAmount);
+      result = result.filter(p => p.amount >= amount);
+    }
+    
+    // Фильтрация по статусу
+    if (filters.statuses.length > 0) {
+      result = result.filter(p => filters.statuses.includes(p.status));
+    }
+    
+    // Фильтрация по типу
+    if (filters.types.length > 0) {
+      result = result.filter(p => filters.types.includes(p.type));
+    }
+    
+    setFilteredPayments(result);
+  };
+
+// В рендере:
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
@@ -245,6 +292,7 @@ const PayPage = () => {
             variant="contained" 
             startIcon={<FilterList />}
             sx={{ mr: 2 }}
+            onClick={<FilterModal payments={payments} onApplyFilters={handleApplyFilters} />}
           >
             Фильтры
           </Button>
@@ -328,90 +376,86 @@ const PayPage = () => {
       </Box>
 
       <Paper sx={{ 
-        p: 2, 
-        borderRadius: 3,
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
+          p: 2, 
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
       }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ 
-                background: 'linear-gradient(90deg, #f6f6f6 0%, #f9f9f9 100%)'
-              }}>
-                <TableCell sx={{ fontWeight: 700 }}>Дата</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Клиент</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Сумма</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Тип</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Статус</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Действия</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {payments.map((payment) => (
-                <TableRow key={payment?.id} hover>
-                  <TableCell>{payment?.date}</TableCell>
-                  <TableCell>{payment?.client}</TableCell>
-                  <TableCell>
-                    <Box sx={{ 
-                      fontWeight: 600, 
-                      color: '#2e7d32',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <AttachMoney fontSize="small" sx={{ mr: 0.5 }} />
-                      {payment?.amount.toLocaleString('ru-RU')} ₽
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={payment?.type} 
-                      size="small"
-                      sx={{ 
-                        background: payment?.type === 'Разовая' ? '#e3f2fd' : 
-                                  payment?.type === '10 тренировок' ? '#e8f5e9' : '#fff8e1',
-                        color: payment?.type === 'Разовая' ? '#1565c0' : 
-                               payment?.type === '10 тренировок' ? '#2e7d32' : '#ff8f00'
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={payment?.status} 
-                      size="small"
-                      sx={{ 
-                        background: payment?.status === 'Активен' ? '#e8f5e9' : '#ffebee',
-                        color: payment?.status === 'Активен' ? '#2e7d32' : '#c62828'
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="outlined" 
-                      size="small" 
-                      color="primary"
-                      onClick={() => handleOpen(payment.client)}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        '&:hover': {
-                          backgroundColor: '#f0f7ff',
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                        }
-                      }}
-                    >
-                      Подробнее
-                    </Button>
-                    {/* <PaymentDetailsPage open={openDetils} close={setOpenDetils} client={client} /> */}
-
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+          <TableContainer sx={{ maxHeight: 440 }}>
+              <Table stickyHeader>
+                  <TableHead>
+                      <TableRow sx={{ 
+                          background: 'linear-gradient(90deg, #f6f6f6 0%, #f9f9f9 100%)'
+                      }}>
+                          <TableCell sx={{ fontWeight: 700 }}>Дата</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Клиент</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Сумма</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Тип</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Статус</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Действия</TableCell>
+                      </TableRow>
+                  </TableHead>
+                  <TableBody>
+                      {payments.map((payment) => (
+                          <TableRow key={payment?.id} hover>
+                              <TableCell>{payment?.date}</TableCell>
+                              <TableCell>{payment?.client}</TableCell>
+                              <TableCell>
+                                  <Box sx={{ 
+                                      fontWeight: 600, 
+                                      color: '#2e7d32',
+                                      display: 'flex',
+                                      alignItems: 'center'
+                                  }}>
+                                      {payment?.amount.toLocaleString('ru-RU')} ₽
+                                  </Box>
+                              </TableCell>
+                              <TableCell>
+                                  <Chip 
+                                      label={payment?.type} 
+                                      size="small"
+                                      sx={{ 
+                                          background: payment?.type === 'Разовая' ? '#e3f2fd' : 
+                                                  payment?.type === '10 тренировок' ? '#e8f5e9' : '#fff8e1',
+                                          color: payment?.type === 'Разовая' ? '#1565c0' : 
+                                              payment?.type === '10 тренировок' ? '#2e7d32' : '#ff8f00'
+                                      }}
+                                  />
+                              </TableCell>
+                              <TableCell>
+                                  <Chip 
+                                      label={payment?.status} 
+                                      size="small"
+                                      sx={{ 
+                                          background: payment?.status === 'Активен' ? '#e8f5e9' : '#ffebee',
+                                          color: payment?.status === 'Активен' ? '#2e7d32' : '#c62828'
+                                      }}
+                                  />
+                              </TableCell>
+                              <TableCell>
+                                  <Button 
+                                      variant="outlined" 
+                                      size="small" 
+                                      color="primary"
+                                      onClick={() => handleOpen(payment)}
+                                      sx={{
+                                          textTransform: 'none',
+                                          borderRadius: '8px',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                          '&:hover': {
+                                              backgroundColor: '#f0f7ff',
+                                              boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                                          }
+                                      }}
+                                  >
+                                      Подробнее
+                                  </Button>
+                              </TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+          </TableContainer>
       </Paper>
-
 
       {/* Диалог добавления оплаты */}
       <Dialog 
@@ -906,3 +950,242 @@ const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisp
   );
 };
 export default PayPage;
+
+
+const FilterModal = ({ payments, onApplyFilters }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [filters, setFilters] = useState({
+    dateFrom: '',
+    dateTo: '',
+    clientName: '',
+    amountType: '',
+    customAmount: '',
+    statuses: [],
+    types: []
+  });
+
+  // Уникальные значения для фильтров
+  const allStatuses = [...new Set(payments.map(p => p.status))];
+  const allTypes = [...new Set(payments.map(p => p.type))];
+  const amountOptions = [
+    { label: "До 1 000 ₽", value: "0-1000" },
+    { label: "1 000 - 3 000 ₽", value: "1000-3000" },
+    { label: "3 000 - 5 000 ₽", value: "3000-5000" },
+    { label: "Более 5 000 ₽", value: "5000-100000" }
+  ];
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name) => (event) => {
+    const value = event.target.value;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleMultiSelectChange = (name) => (event) => {
+    const value = event.target.value;
+    setFilters(prev => ({ ...prev, [name]: typeof value === 'string' ? value.split(',') : value }));
+  };
+
+  const applyFilters = () => {
+    onApplyFilters(filters);
+    handleClose();
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      dateFrom: '',
+      dateTo: '',
+      clientName: '',
+      amountType: '',
+      customAmount: '',
+      statuses: [],
+      types: []
+    });
+    onApplyFilters({});
+  };
+
+  return (
+    <>
+      <Button 
+        variant="contained" 
+        startIcon={<FilterList />}
+        sx={{ mr: 2 }}
+        onClick={handleClick}
+      >
+        Фильтры
+      </Button>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{
+          sx: {
+            width: 400,
+            maxWidth: '100%',
+            p: 2,
+            borderRadius: 2,
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Фильтры</Typography>
+          <Close onClick={handleClose} sx={{ cursor: 'pointer', color: 'text.secondary' }} />
+        </Box>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Период */}
+        <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>Период</Typography>
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            type="date"
+            label="От"
+            name="dateFrom"
+            value={filters.dateFrom}
+            onChange={handleInputChange}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            fullWidth
+            type="date"
+            label="До"
+            name="dateTo"
+            value={filters.dateTo}
+            onChange={handleInputChange}
+            InputLabelProps={{ shrink: true }}
+          />
+        </Stack>
+
+        {/* Имя клиента */}
+        <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>Клиент</Typography>
+        <TextField
+          fullWidth
+          label="Имя клиента"
+          name="clientName"
+          value={filters.clientName}
+          onChange={handleInputChange}
+          sx={{ mb: 2 }}
+        />
+
+        {/* Сумма */}
+        <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>Сумма оплаты</Typography>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Диапазон суммы</InputLabel>
+          <Select
+            label="Диапазон суммы"
+            value={filters.amountType}
+            onChange={handleSelectChange('amountType')}
+          >
+            {amountOptions.map(option => (
+              <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+            ))}
+            <MenuItem value="custom">Своя сумма</MenuItem>
+          </Select>
+        </FormControl>
+
+        {filters.amountType === 'custom' && (
+          <TextField
+            fullWidth
+            label="Введите сумму"
+            name="customAmount"
+            type="number"
+            value={filters.customAmount}
+            onChange={handleInputChange}
+            sx={{ mb: 2 }}
+            InputProps={{
+              startAdornment: <AttachMoney fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+            }}
+          />
+        )}
+
+        {/* Статус */}
+        <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>Статус</Typography>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Выберите статусы</InputLabel>
+          <Select
+            multiple
+            label="Выберите статусы"
+            value={filters.statuses}
+            onChange={handleMultiSelectChange('statuses')}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size="small" />
+                ))}
+              </Box>
+            )}
+          >
+            {allStatuses.map((status) => (
+              <MenuItem key={status} value={status}>
+                <Checkbox checked={filters.statuses.indexOf(status) > -1} />
+                <ListItemText primary={status} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Тип тренировки */}
+        <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>Тип тренировки</Typography>
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <InputLabel>Выберите типы</InputLabel>
+          <Select
+            multiple
+            label="Выберите типы"
+            value={filters.types}
+            onChange={handleMultiSelectChange('types')}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size="small" />
+                ))}
+              </Box>
+            )}
+          >
+            {allTypes.map((type) => (
+              <MenuItem key={type} value={type}>
+                <Checkbox checked={filters.types.indexOf(type) > -1} />
+                <ListItemText primary={type} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Divider sx={{ my: 1 }} />
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+          <Button 
+            variant="outlined" 
+            onClick={resetFilters}
+            sx={{ borderRadius: 2 }}
+          >
+            Сбросить
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={applyFilters}
+            sx={{ borderRadius: 2 }}
+          >
+            Применить
+          </Button>
+        </Box>
+      </Menu>
+    </>
+  );
+};
+
