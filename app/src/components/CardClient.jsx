@@ -6,14 +6,15 @@ import {
     Badge, Tooltip, useTheme, Alert, Snackbar
   } from '@mui/material';
   import {
-    Person, FitnessCenter, Timeline, Assignment,
+    Add,Person, FitnessCenter, Timeline, Assignment,
     Phone, Cake, Straighten, MonitorWeight, Male, Female,
     AccessTime, Close, Edit, Save, Delete, Payment,
     MoreVert, CheckCircle, AttachMoney, Height, Scale,
     Receipt, Warning
   } from '@mui/icons-material';
   import { useState, useRef, useEffect } from 'react';
-
+  import PaymentsTable from './PaymentsTable';
+  import AddPaymentDialog from './AddPaymentDialog';
 
   const CardClient = ({ open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
     const theme = useTheme();
@@ -27,11 +28,22 @@ import {
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
     const dialogRef = useRef(null);
-  
+    const [openDetils, setOpenDetils] = useState(false);
+    const [payment, setPayment] = useState();
+    const [openDialog, setOpenDialog] = useState(false);
+
+    const [payments, setPayments] = useState([]);
+
     useEffect(() => {
       setEditedClient(client);
       setIsEditing(false);
     }, [open]);
+
+    useEffect(() => {
+      if (editedClient?.name) {
+        fetchDataPayList();
+      }
+    }, [editedClient?.name]);
 
     // Цвета в зависимости от пола
     const genderColors = {
@@ -82,7 +94,7 @@ import {
     addSnackBar('DeleteClient', 'error', 'Ошибка в получении данных клиентов с сервера');
   }
     };
-  
+    
     const handleDeleteConfirm = async () => {
       try {
             console.log('clientclientsclientss ', client);
@@ -108,7 +120,23 @@ import {
       setPaymentAmount('');
       // Здесь логика сохранения оплаты
     };
-  
+    
+    const PaymentDialog = () => {
+      setPaymentDialog(true);
+      fetchDataPayList();
+    };
+
+    
+    const fetchDataPayList = async () => {
+      try {
+        const response = await fetchWithRetry('/payment_history', 'GET');
+        const filtered = response.filter(payment => payment.client === editedClient.name);
+        setPayments(filtered);
+      } catch (error) {
+        addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
+      }
+    };
+
     // Данные для демонстрации
     const workoutStats = {
       completed: 12,
@@ -130,6 +158,12 @@ import {
       { date: '2023-05-15', amount: '5000', type: 'Абонемент' },
       { date: '2023-04-10', amount: '3000', type: 'Разовое' }
     ];
+
+    const handleOpen = (client) => {
+      console.log(client);
+      setPayment(client);
+      setOpenDetils(true);
+    };
   
     return (
       <>
@@ -829,63 +863,37 @@ import {
   
                 {activeTab === 3 && (
                   <Box>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                      <Typography variant="h6" fontWeight={600}>
-                        История оплат
-                      </Typography>
-                      <Button 
-                        variant="contained" 
-                        startIcon={<AttachMoney />}
-                        onClick={() => setPaymentDialog(true)}
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                    <Typography variant="h6" fontWeight={600}>
+                      История оплат
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={() => setOpenDialog(true)}
+                        sx={{
+                          background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                          borderRadius: 3,
+                          px: 4,
+                          py: 1.5,
+                          boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+                          '&:hover': {
+                            boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)'
+                          }
+                        }}
                       >
-                        Новая оплата
+                        Добавить оплату
                       </Button>
                     </Box>
-                    
-                    <Paper elevation={0} sx={{ 
-                      p: 3, 
-                      borderRadius: 3,
-                      background: theme.palette.background.paper
-                    }}>
-                      <Grid container spacing={2} sx={{ mb: 2 }}>
-                        <Grid item xs={4}>
-                          <Typography variant="subtitle1" fontWeight={500}>Дата</Typography>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <Typography variant="subtitle1" fontWeight={500}>Сумма</Typography>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <Typography variant="subtitle1" fontWeight={500}>Тип</Typography>
-                        </Grid>
-                      </Grid>
-                      
-                      <Divider sx={{ mb: 2 }} />
-                      
-                      {paymentHistory.length > 0 ? (
-                        paymentHistory.map((payment, index) => (
-                          <Grid container spacing={2} key={index} sx={{ 
-                            py: 1.5,
-                            backgroundColor: index % 2 === 0 ? theme.palette.background.default : 'transparent',
-                            borderRadius: 1
-                          }}>
-                            <Grid item xs={4}>
-                              <Typography>{new Date(payment.date).toLocaleDateString()}</Typography>
-                            </Grid>
-                            <Grid item xs={4}>
-                              <Typography fontWeight={500}>{payment.amount}₽</Typography>
-                            </Grid>
-                            <Grid item xs={4}>
-                              <Typography>{payment.type}</Typography>
-                            </Grid>
-                          </Grid>
-                        ))
-                      ) : (
-                        <Typography color="text.secondary" textAlign="center" py={3}>
-                          Нет данных об оплатах
-                        </Typography>
-                      )}
-                    </Paper>
                   </Box>
+                  {console.log(payments)}
+                  <PaymentsTable 
+                
+                    payments={payments}
+                    handleOpen={handleOpen}
+                  />
+                </Box>
                 )}
   
                 {activeTab === 4 && (
@@ -978,7 +986,14 @@ import {
   
           
         </Dialog>
-  
+                
+        <AddPaymentDialog
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          fetchDataPayList={() => fetchDataPayList()}
+          client={client}
+        />
+
         {/* Диалог подтверждения удаления */}
         <Dialog
           open={confirmDelete}
