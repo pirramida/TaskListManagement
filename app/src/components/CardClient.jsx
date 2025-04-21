@@ -15,6 +15,16 @@ import {
   import { useState, useRef, useEffect } from 'react';
   import PaymentsTable from './PaymentsTable';
   import AddPaymentDialog from './AddPaymentDialog';
+  import PaymentDetailsDialog from './DialogOpenDetails'
+
+  import PaidIcon from '@mui/icons-material/Paid';
+  import PersonIcon from '@mui/icons-material/Person';
+  import EventIcon from '@mui/icons-material/Event';
+  import PhoneIcon from '@mui/icons-material/Phone';
+  import NotesIcon from '@mui/icons-material/Notes';
+  import CreditCardIcon from '@mui/icons-material/CreditCard';
+  import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+  import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
   const CardClient = ({ open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
     const theme = useTheme();
@@ -31,6 +41,7 @@ import {
     const [openDetils, setOpenDetils] = useState(false);
     const [payment, setPayment] = useState();
     const [openDialog, setOpenDialog] = useState(false);
+    const [clients, setClient] = useState(null);
 
     const [payments, setPayments] = useState([]);
 
@@ -44,6 +55,27 @@ import {
         fetchDataPayList();
       }
     }, [editedClient?.name]);
+
+  
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setPayment(prev => ({ ...prev, [name]: value }));
+    };
+
+    const getFieldIcon = (name) => {
+      switch(name) {
+        case 'amount': return <PaidIcon fontSize="small" />;
+        case 'client': return <PersonIcon fontSize="small" />;
+        case 'date':
+        case 'dateTo': return <EventIcon fontSize="small" />;
+        case 'phone': return <PhoneIcon fontSize="small" />;
+        case 'notes': return <NotesIcon fontSize="small" />;
+        case 'method': return <CreditCardIcon fontSize="small" />;
+        case 'type': return <FitnessCenterIcon fontSize="small" />;
+        case 'status': return <CheckCircleIcon fontSize="small" />;
+        default: return null;
+      }
+    };
 
     // Цвета в зависимости от пола
     const genderColors = {
@@ -63,6 +95,23 @@ import {
   
     const currentColors = genderColors[client.gender] || genderColors.Male;
   
+    const renderStatusChip = (status) => {
+      let color = 'default';
+      if (status === 'Активен') color = 'success';
+      if (status === 'Просрочен') color = 'error';
+      if (status === 'Ожидает') color = 'warning';
+  
+      return (
+        <Chip
+          label={status}
+          color={color}
+          size="small"
+          icon={<CheckCircleIcon fontSize="small" />}
+          sx={{ borderRadius: '6px', fontWeight: 500 }}
+        />
+      );
+    };
+    
     const handleContextMenu = (e) => {
       e.preventDefault();
       setContextMenu({ mouseX: e.clientX, mouseY: e.clientY });
@@ -342,7 +391,7 @@ import {
                         sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)', height: 32 }}
                       />
 
-                      Вес
+                      
                       <Chip
                         label={
                           isEditing ? (
@@ -444,19 +493,21 @@ import {
                   Программа тренировок
                 </Typography>
                 <Box display="flex" alignItems="center" gap={2}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={workoutStats.progress}
-                    sx={{ 
-                      height: 8,
-                      flexGrow: 1,
-                      borderRadius: 4,
-                      bgcolor: 'rgba(255,255,255,0.3)',
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 4
-                      }
-                    }}
-                  />
+                <LinearProgress
+                  variant="determinate"
+                  value={workoutStats.progress}
+                  sx={{ 
+                    height: 8,
+                    flexGrow: 1,
+                    borderRadius: 4,
+                    bgcolor: 'rgba(133, 74, 74, 0.3)', // фон под прогресс-баром
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor:  'rgb(0, 255, 242)',
+                      borderRadius: 4
+                    }
+                  }}
+                />
+
                   <Typography variant="body2" fontWeight={600}>
                     {workoutStats.completed}/{workoutStats.total} ({workoutStats.progress}%)
                   </Typography>
@@ -992,6 +1043,20 @@ import {
           onClose={() => setOpenDialog(false)}
           fetchDataPayList={() => fetchDataPayList()}
           client={client}
+          clients={client}
+          setClient={setClient}
+        />
+
+        <PaymentDetailsDialog
+          open={openDetils}
+          onClose={() => setOpenDetils(false)}
+          payment={payment}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          handleChange={handleChange}
+          handleSave={handleSave}
+          getFieldIcon={getFieldIcon}
+          renderStatusChip={renderStatusChip}
         />
 
         {/* Диалог подтверждения удаления */}

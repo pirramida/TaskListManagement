@@ -156,7 +156,7 @@ import {
             </Typography>
             <Autocomplete
               options={clients}
-              getOptionLabel={(option) => option.name}
+              getOptionLabel={(option) => option?.name || ''}
               renderInput={(params) => (
                 <TextField 
                   {...params} 
@@ -172,7 +172,9 @@ import {
                 setClient(newValue);
               }}
               fullWidth
-            />
+              disabled={clients?.length === 1}
+          />
+
           </Box>
 
           <Box sx={{ mb: 3 }}>

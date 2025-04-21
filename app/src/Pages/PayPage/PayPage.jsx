@@ -65,6 +65,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PaymentsTable from '../../components/PaymentsTable';
 import AddPaymentDialog from '../../components/AddPaymentDialog';
+import PaymentDetailsDialog from '../../components/DialogOpenDetails';
 
 
 
@@ -335,221 +336,18 @@ const PayPage = () => {
         client={client}
       />
 
-      <Dialog
-      open={openDetils}
-      fullWidth
-      maxWidth="md"
-      onClose={() => setOpenDetils(false)}
-      TransitionComponent={Transition}
-      fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          borderRadius: isMobile ? 0 : '12px',
-          background: theme.palette.background.paper,
-          boxShadow: theme.shadows[10]
-        }
-      }}
-    >
-      <DialogTitle sx={{ 
-        background: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-        py: 2,
-        position: 'relative'
-      }}>
-        <Box display="flex" alignItems="center">
-          {isMobile && (
-            <IconButton 
-              edge="start" 
-              color="inherit" 
-              onClick={() => setOpenDetils(false)}
-              sx={{ mr: 1 }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Детали платежа
-          </Typography>
-        </Box>
-        {!isMobile && (
-          <IconButton 
-            onClick={() => setOpenDetils(false)}
-            sx={{
-              position: 'absolute',
-              right: 16,
-              top: 12,
-              color: theme.palette.primary.contrastText
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        )}
-      </DialogTitle>
-      
-      <DialogContent dividers sx={{ background: theme.palette.grey[50] }}>
-        <Paper elevation={0} sx={{ 
-          p: 3, 
-          borderRadius: 2,
-          background: 'transparent'
-        }}>
-          <Box display="flex" justifyContent="flex-end" mb={3}>
-            {isEditing ? (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<SaveIcon />}
-                onClick={handleSave}
-                sx={{ 
-                  borderRadius: '8px',
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    boxShadow: theme.shadows[2]
-                  }
-                }}
-              >
-                Сохранить изменения
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<EditIcon />}
-                onClick={handleEdit}
-                sx={{ 
-                  borderRadius: '8px',
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  borderWidth: '2px',
-                  '&:hover': {
-                    borderWidth: '2px'
-                  }
-                }}
-              >
-                Редактировать
-              </Button>
-            )}
-          </Box>
+      <PaymentDetailsDialog
+        open={openDetils}
+        onClose={() => setOpenDetils(false)}
+        payment={payment}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        handleChange={handleChange}
+        handleSave={handleSave}
+        getFieldIcon={getFieldIcon}
+        renderStatusChip={renderStatusChip}
+      />
 
-          <Box 
-            display="grid" 
-            gridTemplateColumns={isMobile ? '1fr' : 'repeat(2, 1fr)'} 
-            gap={3}
-          >
-            <Field 
-              label="Сумма" 
-              name="amount" 
-              value={payment?.amount} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('amount')}
-              suffix="₽"
-            />
-            <Field 
-              label="Клиент" 
-              name="client" 
-              value={payment?.client} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('client')}
-            />
-            <Field 
-              label="Тип платежа" 
-              name="customPaymentType" 
-              value={payment?.customPaymentType} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('customPaymentType')}
-            />
-            <Field 
-              label="Дата" 
-              name="date" 
-              value={payment?.date} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('date')}
-              type={isEditing ? 'date' : 'text'}
-            />
-            <Field 
-              label="Дата окончания" 
-              name="dateTo" 
-              value={payment?.dateTo} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('dateTo')}
-              type={isEditing ? 'date' : 'text'}
-            />
-            <Field 
-              label="Метод оплаты" 
-              name="method" 
-              value={payment?.method} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('method')}
-            />
-            <Field 
-              label="Примечания" 
-              name="notes" 
-              value={payment?.notes} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('notes')}
-              multiline
-              rows={3}
-            />
-            <Field 
-              label="Телефон" 
-              name="phone" 
-              value={payment?.phone} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('phone')}
-            />
-            <Field 
-              label="Статус" 
-              name="status" 
-              value={payment?.status} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('status')}
-              customDisplay={!isEditing && renderStatusChip(payment?.status)}
-            />
-            <Field 
-              label="Тип" 
-              name="type" 
-              value={payment?.type} 
-              editing={isEditing} 
-              onChange={handleChange}
-              icon={getFieldIcon('type')}
-            />
-          </Box>
-        </Paper>
-      </DialogContent>
-      
-      <DialogActions sx={{ 
-        background: theme.palette.grey[100],
-        px: 3,
-        py: 2
-      }}>
-        <Button 
-          onClick={() => setOpenDetils(false)} 
-          sx={{ 
-            borderRadius: '8px',
-            px: 3,
-            py: 1,
-            textTransform: 'none',
-            fontWeight: 500
-          }}
-        >
-          Закрыть
-        </Button>
-      </DialogActions>
-    </Dialog>
     </Box>
     
   );
