@@ -121,20 +121,15 @@ import {
     const handleCloseContextMenu = () => setContextMenu(null);
   
     const handleFieldChange = (field, value) => {
-      console.log(' field, value field, value',field, value);
       setEditedClient(prev => ({ ...prev, [field]: value }));
-      console.log('editedCeditedClientlient', editedClient);
     };
   
     const handleSave = async () => {
       try {
         const response = await fetchWithRetry('/clients', 'PATCH', { phoneNumber: client.phone, form: editedClient});
-        console.log('responseresponseresponse', response.message);
         if (response.message === 'Данные пользователя обновлены!') {
           fetchData()
           setIsEditing(false);
-          console.log('response.dataresponse.data', response.data[0]);
-
           setSelectedClient(response.data[0]);
           addSnackBar('DeleteClient1', 'success', 'Изменения сохранены успешно!');
         } else {
@@ -147,9 +142,7 @@ import {
     
     const handleDeleteConfirm = async () => {
       try {
-            console.log('clientclientsclientss ', client);
             const response = await fetchWithRetry('/clients', 'DELETE', { phoneNumber: client.phone});
-            console.log('responseresponseresponse ', response);
             if (response.message === 'Клиент удален!') {
               fetchData()
               setConfirmDelete(false);
@@ -180,12 +173,16 @@ import {
     const fetchDataPayList = async () => {
       try {
         const response = await fetchWithRetry('/payment_history', 'GET');
+        const response1 = await fetchWithRetry('/payment_history/quantity', 'GET', client);
+
         const filtered = response.filter(payment => payment.client === editedClient.name);
         setPayments(filtered);
       } catch (error) {
         addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
       }
     };
+
+    
 
     // Данные для демонстрации
     

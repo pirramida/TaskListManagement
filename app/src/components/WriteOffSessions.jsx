@@ -28,7 +28,8 @@ export const WriteOffSessions = ({ open, onClose, client }) => {
         addToast('errorWriteOffSession', 'error', 'Ошибка списания тренировоки', 1000);
         return
     }
-    addToast('successWriteOffSession', 'success', `Тренировки успешносписана у ${client.name}, Осталось: ${response.data[0]?.sessions}`, 1000);
+
+    addToast('successWriteOffSession', 'success', `Тренировки успешносписана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`, 1000);
     onClose();
   };
 
