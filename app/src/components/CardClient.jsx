@@ -16,7 +16,7 @@ import {
   import PaymentsTable from './PaymentsTable';
   import AddPaymentDialog from './AddPaymentDialog';
   import PaymentDetailsDialog from './DialogOpenDetails'
-
+  import WriteOffSessions from './WriteOffSessions';
   import PaidIcon from '@mui/icons-material/Paid';
   import PersonIcon from '@mui/icons-material/Person';
   import EventIcon from '@mui/icons-material/Event';
@@ -34,6 +34,7 @@ import {
     const [contextMenu, setContextMenu] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [paymentDialog, setPaymentDialog] = useState(false);
+    const [writeOffDialog, setWriteOffDialog] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
@@ -187,6 +188,7 @@ import {
     };
 
     // Данные для демонстрации
+    
     const workoutStats = {
       completed: 12,
       remaining: 8,
@@ -249,6 +251,9 @@ import {
             <MenuItem onClick={() => { setPaymentDialog(true); handleCloseContextMenu(); }}>
               <ListItemIcon><AttachMoney color="success" fontSize="small" /></ListItemIcon>
               <Typography variant="body2">Зарегистрировать оплату</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => { setWriteOffDialog(true); handleCloseContextMenu(); }}>
+              <Typography variant="body2">Списать тренировку!</Typography>
             </MenuItem>
           </Menu>
   
@@ -1057,6 +1062,13 @@ import {
           handleSave={handleSave}
           getFieldIcon={getFieldIcon}
           renderStatusChip={renderStatusChip}
+        />
+        
+        {/* Диалог списания тренировки */}
+        <WriteOffSessions 
+          open={writeOffDialog}
+          onClose={() => setWriteOffDialog()}
+          client={client}
         />
 
         {/* Диалог подтверждения удаления */}

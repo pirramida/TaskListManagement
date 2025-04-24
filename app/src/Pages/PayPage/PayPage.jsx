@@ -335,7 +335,8 @@ const PayPage = () => {
         setClient={setClient}
         client={client}
       />
-
+      
+      {/* Диалог деталей о оплате */}
       <PaymentDetailsDialog
         open={openDetils}
         onClose={() => setOpenDetils(false)}
