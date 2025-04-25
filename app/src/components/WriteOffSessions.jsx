@@ -19,7 +19,7 @@ const SlideTransition = React.forwardRef((props, ref) => (
   <Slide direction="up" ref={ref} {...props} />
 ));
 
-export const WriteOffSessions = ({ open, onClose, client }) => {
+export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) => {
   const isMobile = useMediaQuery('(max-width:600px)');
 
   const handleConfirm = async () => {
@@ -28,7 +28,7 @@ export const WriteOffSessions = ({ open, onClose, client }) => {
         addToast('errorWriteOffSession', 'error', 'Ошибка списания тренировоки', 1000);
         return
     }
-
+    fetchDataQuantity();
     addToast('successWriteOffSession', 'success', `Тренировки успешносписана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`, 1000);
     onClose();
   };

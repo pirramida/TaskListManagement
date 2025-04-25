@@ -43,7 +43,13 @@ import {
     const [payment, setPayment] = useState();
     const [openDialog, setOpenDialog] = useState(false);
     const [clients, setClient] = useState(null);
-
+    const [workoutStats, setWorkoutStats] = useState({ 
+      completed: 0, 
+      remaining: 0, 
+      total: 0,
+      lastPayment: 0,
+      progress: 0
+    });
     const [payments, setPayments] = useState([]);
 
     useEffect(() => {
@@ -54,9 +60,36 @@ import {
     useEffect(() => {
       if (editedClient?.name) {
         fetchDataPayList();
+        fetchDataQuantity();
       }
     }, [editedClient?.name]);
 
+    useEffect(() => {
+    }, []);
+
+    const fetchDataQuantity = async () => {
+      try {
+        const response = await fetchWithRetry('/payment_history/quantity', 'Patch', client);
+        if (response) {
+          const completed = response[0].quantity - response[0].quantityLeft || 0;
+          const remaining = response[0].quantity || 0;
+          
+          const total = remaining;
+          const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+    
+          setWorkoutStats({
+            completed,
+            remaining,
+            total,
+            lastPayment: response.dateTo,
+            progress
+          });
+        }
+      } catch (error) {
+        addToast('errorResponseQuantity', 'error', 'НЕполучилось загрузить количество по пакету', 1000);
+      } 
+    };
+    
   
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -173,10 +206,9 @@ import {
     const fetchDataPayList = async () => {
       try {
         const response = await fetchWithRetry('/payment_history', 'GET');
-        const response1 = await fetchWithRetry('/payment_history/quantity', 'GET', client);
-
         const filtered = response.filter(payment => payment.client === editedClient.name);
         setPayments(filtered);
+
       } catch (error) {
         addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
       }
@@ -186,13 +218,9 @@ import {
 
     // Данные для демонстрации
     
-    const workoutStats = {
-      completed: 12,
-      remaining: 8,
-      total: 20,
-      lastPayment: '2023-06-20',
-      progress: 65
-    };
+    
+    
+    console.log(workoutStats);
   
     const bodyStats = [
       { label: 'Грудь', value: client.chest, unit: 'см', icon: <Straighten /> },
@@ -1066,6 +1094,7 @@ import {
           open={writeOffDialog}
           onClose={() => setWriteOffDialog()}
           client={client}
+          fetchDataQuantity={fetchDataQuantity}
         />
 
         {/* Диалог подтверждения удаления */}
