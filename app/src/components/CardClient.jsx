@@ -76,16 +76,29 @@ import {
           
           const total = remaining;
           const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
-    
+          
           setWorkoutStats({
             completed,
             remaining,
             total,
-            lastPayment: response.dateTo,
+            lastPayment: response[0].dateTo,
             progress
           });
+          console.log(workoutStats);
         }
       } catch (error) {
+        const completed = 0;
+        const remaining = 0;
+        
+        const total = remaining;
+        const progress = 0;
+        
+        setWorkoutStats({
+          completed,
+          remaining,
+          total,
+          progress
+        });
         addToast('errorResponseQuantity', 'error', 'НЕполучилось загрузить количество по пакету', 1000);
       } 
     };
@@ -212,16 +225,9 @@ import {
       } catch (error) {
         addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
       }
-    };
-
-    
+    }; 
 
     // Данные для демонстрации
-    
-    
-    
-    console.log(workoutStats);
-  
     const bodyStats = [
       { label: 'Грудь', value: client.chest, unit: 'см', icon: <Straighten /> },
       { label: 'Талия', value: client.waist, unit: 'см', icon: <Straighten /> },
@@ -508,40 +514,56 @@ import {
             </Box>
   
             {/* Статус бар */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              mt: 3,
-              background: 'rgba(0,0,0,0.2)',
-              borderRadius: 2,
-              p: 1.5,
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <Box flexGrow={1} zIndex={1}>
-                <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
-                  Программа тренировок
+            {workoutStats.completed === 0 && workoutStats.total === 0 && workoutStats.progress === 0  ? (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mt: 3,
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: 2,
+                p: 3,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <Typography variant="body1" fontWeight={600}>
+                  Пакет не куплен! Купите пакет тренировок
                 </Typography>
-                <Box display="flex" alignItems="center" gap={2}>
-                <LinearProgress
-                  variant="determinate"
-                  value={workoutStats.progress}
-                  sx={{ 
-                    height: 8,
-                    flexGrow: 1,
-                    borderRadius: 4,
-                    bgcolor: 'rgba(133, 74, 74, 0.3)', // фон под прогресс-баром
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor:  'rgb(0, 255, 242)',
-                      borderRadius: 4
-                    }
-                  }}
-                />
-
-                  <Typography variant="body2" fontWeight={600}>
-                    {workoutStats.completed}/{workoutStats.total} ({workoutStats.progress}%)
+              </Box>
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mt: 3,
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: 2,
+                p: 1.5,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <Box flexGrow={1} zIndex={1}>
+                  <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
+                    Программа тренировок
                   </Typography>
-                </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={workoutStats.progress}
+                      sx={{ 
+                        height: 8,
+                        flexGrow: 1,
+                        borderRadius: 4,
+                        bgcolor: 'rgba(133, 74, 74, 0.3)',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: 'rgb(0, 255, 242)',
+                          borderRadius: 4
+                        }
+                      }}
+                    />
+                    <Typography variant="body2" fontWeight={600}>
+                      {workoutStats.completed}/{workoutStats.total} ({workoutStats.progress}%)
+                    </Typography>
+                  </Box>
               </Box>
               <Box zIndex={1} sx={{ ml: 2 }}>
                 <Chip
@@ -565,8 +587,8 @@ import {
                 zIndex: 0
               }} />
             </Box>
+          )}
           </Box>
-  
           {/* Основное содержимое */}
           <DialogContent dividers sx={{ p: 0 }}>
             <Box sx={{ p: 3 }}>
