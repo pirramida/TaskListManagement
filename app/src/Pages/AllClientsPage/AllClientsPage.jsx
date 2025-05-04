@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { fetchWithRetry } from "../../utils/refreshToken";
 import { addToast, useSnackbarContext  } from "../../utils/addToast";
 import CardClient from "../../components/CardClient";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { IconButton, Menu, MenuItem } from '@mui/material';
 
 import { 
   Card, 
@@ -39,7 +41,20 @@ const AllClientsPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     
     const { addSnackBar } = useSnackbarContext();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [menuClientId, setMenuClientId] = useState(null);
+    const [action, setAction] = useState('');
 
+    const handleMenuOpen = (event, clientId) => {
+      setAnchorEl(event.currentTarget);
+      setMenuClientId(clientId);
+    };
+    
+    const handleMenuClose = () => {
+      setAnchorEl(null);
+      setMenuClientId(null);
+    };
+    
 
     useEffect(() => {
         fetchData();
@@ -141,6 +156,10 @@ const AllClientsPage = () => {
                                 }
                                 
                             }}
+                            onContextMenu={(event) => {
+                                event.preventDefault(); // отменяет стандартное контекстное меню
+                                handleMenuOpen(event, client.id); // открывает наше меню
+                              }}
                             onClick={() => {
                                 setSelectedClient(client);
                                 setIsDialogOpen(true);
@@ -156,8 +175,8 @@ const AllClientsPage = () => {
                                     borderTopLeftRadius: 12,
                                     borderTopRightRadius: 12,
                                     background: client.gender === 'Male' 
-                                    ? 'linear-gradient(135deg, #1976d2 0%, #64b5f6 100%)' 
-                                    : 'linear-gradient(135deg, #d81b60 0%, #f06292 100%)'
+                                    ? 'linear-gradient(135deg, #6a1b9a 0%, #6a1b9a 100%)'  
+                                    : 'linear-gradient(135deg, #6a1b9a 0%, #6a1b9a 100%)' 
                                 }}
                                 
                                 >
@@ -186,6 +205,51 @@ const AllClientsPage = () => {
                                         }}>
                                             {client.age} лет
                                         </Typography>
+                                    </Box>
+                                    <Box sx={{ marginLeft: 'auto' }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleMenuOpen(event, client.id);
+                                        }}
+                                        sx={{ color: 'white' }}
+                                    >
+                                        <MoreVertIcon />
+                                    </IconButton>
+
+                                    <Menu
+                                        anchorEl={anchorEl}
+                                        open={Boolean(anchorEl) && menuClientId === client.id}
+                                        onClose={handleMenuClose}
+                                        anchorOrigin={{
+                                        vertical: 'bottom',
+                                        horizontal: 'right',
+                                        }}
+                                        transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'right',
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <MenuItem onClick={() => {
+                                            handleMenuClose();
+                                            setAction('payAdd');
+                                            setSelectedClient(client);
+                                        }}>Добавить оплату</MenuItem>
+                                        
+                                        <MenuItem onClick={() => {
+                                            handleMenuClose();
+                                            setAction('writeOff');
+                                            setSelectedClient(client);
+                                        }}>Списать тренировку</MenuItem>
+
+                                        <MenuItem onClick={() => {
+                                            handleMenuClose();
+                                            setAction('delete');
+                                            setSelectedClient(client);
+                                        }} sx={{ color: 'error.main' }}>Удалить</MenuItem>
+                                    </Menu>
                                     </Box>
                                 </Box>
                                 
@@ -286,7 +350,7 @@ const AllClientsPage = () => {
             </Container>
             {selectedClient !== null && 
             <>
-                <CardClient client={selectedClient} setSelectedClient={setSelectedClient} open={isDialogOpen} onClose={() => setIsDialogOpen(false)} fetchWithRetry={fetchWithRetry} addToast={addToast} addSnackBar={addSnackBar} fetchData={fetchData}/>
+                <CardClient setAction={setAction} action={action} client={selectedClient} setSelectedClient={setSelectedClient} open={isDialogOpen} onClose={() => setIsDialogOpen(false)} fetchWithRetry={fetchWithRetry} addToast={addToast} addSnackBar={addSnackBar} fetchData={fetchData}/>
             </>
             }        
         </>

@@ -16,6 +16,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { styled } from '@mui/material/styles';
+import { fetchWithRetry } from "../../utils/refreshToken";
 
 // Стильная цветовая палитра
 const colors = {
@@ -71,7 +72,9 @@ const HeaderPages = () => {
     setMoreMenuAnchor(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
+  const handleMenuClose = async () => {
+    const response = await fetchWithRetry('/users/refresh-events', 'GET');
+    console.log('responseresponseresponseresponse', response);
     setMobileMenuAnchor(null);
     setMoreMenuAnchor(null);
   };

@@ -155,25 +155,30 @@ import {
               Клиент *
             </Typography>
             <Autocomplete
-              options={clients}
-              getOptionLabel={(option) => option?.name || ''}
-              renderInput={(params) => (
-                <TextField 
-                  {...params} 
-                  placeholder="Начните вводить имя"
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />
-                  }}
-                />
-              )}
-              value={client}
-              onChange={(event, newValue) => {
-                setClient(newValue);
-              }}
-              fullWidth
-              disabled={clients?.length === 1}
-          />
+  options={Array.isArray(clients) ? clients : []}
+  getOptionLabel={(option) => option?.name || ''}
+  renderInput={(params) => (
+    <TextField 
+      {...params} 
+      placeholder="Начните вводить имя"
+      InputProps={{
+        ...params.InputProps,
+        startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />
+      }}
+    />
+  )}
+  value={client}
+  onChange={(event, newValue) => {
+    if ((clients?.length || 0) > 1) {
+      setClient(newValue);
+    }
+  }}
+  openOnFocus={(clients?.length || 0) > 1}
+  disableClearable
+  fullWidth
+  disabled={(clients?.length || 0) === 0}
+/>
+
 
           </Box>
 

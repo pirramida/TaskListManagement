@@ -89,6 +89,8 @@ const PayPage = () => {
 
   const [payments, setPayments] = useState([]);
   const [openFilter, setOpenFilter] = useState(false);
+  const [statistic, setStatistic] = useState({cashInMonth: 0, sessionsInMonth: 0, averageReceipt: 0 });
+
 
   useEffect(() => {
     try {
@@ -112,8 +114,10 @@ const PayPage = () => {
 
   const fetchDataPayList = async () => {
     try {
-      const response = await fetchWithRetry('/payment_history', 'GET');
-      setPayments(response)
+      const response1 = await fetchWithRetry('/payment_history', 'GET');
+      const response2 = await fetchWithRetry('/users', 'GET');
+      setStatistic({cashInMonth: response2[0].cashInMonth, sessionsInMonth: response2[0].sessionsInMonth, averageReceipt: (response2[0].cashInMonth/response2[0].sessionsInMonth).toFixed(2) });
+      setPayments(response1)
     } catch (error) {
       addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
     }
@@ -271,9 +275,9 @@ const PayPage = () => {
           background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
           color: 'white'
         }}>
-          <Typography variant="h6">Общий доход</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>24,500 ₽</Typography>
-          <Typography variant="body2">за последние 30 дней</Typography>
+          <Typography variant="h6">Доход</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.cashInMonth} ₽</Typography>
+          <Typography variant="body2">за текущий месяц</Typography>
         </Paper>
         <Paper sx={{ 
           p: 3, 
@@ -282,9 +286,9 @@ const PayPage = () => {
           background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
           color: 'white'
         }}>
-          <Typography variant="h6">Активные абонементы</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>8</Typography>
-          <Typography variant="body2">из 24 клиентов</Typography>
+          <Typography variant="h6">Проведено тренировок</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.sessionsInMonth}</Typography>
+          <Typography variant="body2">за текущий месяц</Typography>
         </Paper>
         <Paper sx={{ 
           p: 3, 
@@ -294,8 +298,8 @@ const PayPage = () => {
           color: 'white'
         }}>
           <Typography variant="h6">Средний чек</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>4,900 ₽</Typography>
-          <Typography variant="body2">за последние 30 дней</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.averageReceipt} ₽</Typography>
+          <Typography variant="body2">за текущий месяц</Typography>
         </Paper>
       </Box>
 

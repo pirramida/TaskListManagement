@@ -26,7 +26,7 @@ import {
   import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
   import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-  const CardClient = ({ open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
+  const CardClient = ({setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
     const theme = useTheme();
     const [activeTab, setActiveTab] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
@@ -62,10 +62,23 @@ import {
         fetchDataPayList();
         fetchDataQuantity();
       }
-    }, [editedClient?.name]);
+    }, [editedClient?.name, openDialog, writeOffDialog]);
 
     useEffect(() => {
-    }, []);
+      if (action === 'delete') {
+        setConfirmDelete(true);
+        setAction('');
+        handleCloseContextMenu();
+      } else if (action === 'writeOff') {
+        setWriteOffDialog(true);
+        setAction('');
+        handleCloseContextMenu();
+      } else if (action === 'payAdd') {
+        setOpenDialog(true);
+        setAction('');
+        handleCloseContextMenu();
+      }
+    }, [action]);
 
     const fetchDataQuantity = async () => {
       try {
@@ -99,11 +112,10 @@ import {
           total,
           progress
         });
-        addToast('errorResponseQuantity', 'error', 'НЕполучилось загрузить количество по пакету', 1000);
+        // addToast('errorResponseQuantity', 'error', 'НЕполучилось загрузить количество по пакету', 1000);
       } 
     };
     
-  
     const handleChange = (e) => {
       const { name, value } = e.target;
       setPayment(prev => ({ ...prev, [name]: value }));
@@ -279,7 +291,7 @@ import {
               <ListItemIcon><Delete color="error" fontSize="small" /></ListItemIcon>
               <Typography variant="body2">Удалить клиента</Typography>
             </MenuItem>
-            <MenuItem onClick={() => { setPaymentDialog(true); handleCloseContextMenu(); }}>
+            <MenuItem onClick={() => { setOpenDialog(true); handleCloseContextMenu(); }}>
               <ListItemIcon><AttachMoney color="success" fontSize="small" /></ListItemIcon>
               <Typography variant="body2">Зарегистрировать оплату</Typography>
             </MenuItem>
@@ -1089,7 +1101,8 @@ import {
   
           
         </Dialog>
-                
+                       
+        {/* Диалог с оплатой */}
         <AddPaymentDialog
           open={openDialog}
           onClose={() => setOpenDialog(false)}
@@ -1099,6 +1112,7 @@ import {
           setClient={setClient}
         />
 
+        {/* Диалог с информацией о транзакции */}
         <PaymentDetailsDialog
           open={openDetils}
           onClose={() => setOpenDetils(false)}
@@ -1149,81 +1163,6 @@ import {
             </Button>
           </DialogActions>
         </Dialog>
-  
-        {/* Диалог оплаты */}
-        <Dialog
-          open={paymentDialog}
-          onClose={() => setPaymentDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>
-            <Box display="flex" alignItems="center" gap={1}>
-              <AttachMoney color="success" />
-              Регистрация оплаты
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Сумма оплаты"
-                  type="number"
-                  fullWidth
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  InputProps={{
-                    endAdornment: '₽'
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Дата оплаты"
-                  type="date"
-                  fullWidth
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  InputLabelProps={{
-                    shrink: true
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-          <TextField
-            label="Тип оплаты"
-            select
-            fullWidth
-            value="Абонемент"
-            onChange={() => {}}
-          >
-            <MenuItem value="Абонемент">Абонемент</MenuItem>
-            <MenuItem value="Разовое">Разовое посещение</MenuItem>
-            <MenuItem value="Персональные">Персональные тренировки</MenuItem>
-          </TextField>
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            label="Комментарий"
-            multiline
-            rows={3}
-            fullWidth
-          />
-        </Grid>
-      </Grid>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setPaymentDialog(false)}>Отмена</Button>
-      <Button 
-        onClick={handlePaymentSubmit} 
-        variant="contained" 
-        color="success"
-        startIcon={<Save />}
-      >
-        Зарегистрировать оплату
-      </Button>
-    </DialogActions>
-  </Dialog>
 
   {/* Уведомления */}
   <Snackbar
