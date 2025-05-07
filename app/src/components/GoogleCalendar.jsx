@@ -113,7 +113,7 @@ export default function GoogleCalendarOAuth() {
       <button onClick={handleAuth} disabled={loading}>
         {loading ? 'Авторизация...' : 'Привязать Google'}
       </button>
-      <button onClick={handleEvents} disabled={loading || !token}>
+      <button onClick={handleEvents}>
         {loading ? 'Загружаем события...' : 'Получить события'}
       </button>
       <button onClick={handleUnlink} disabled={loading}>
