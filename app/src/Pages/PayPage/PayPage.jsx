@@ -94,10 +94,6 @@ const PayPage = () => {
 
   useEffect(() => {
     try {
-      const fetchData = async() => {
-        const response = await fetchWithRetry('/clients', 'GET');
-        setClients(response);
-      }
       fetchData();
     } catch (error) {
       console.error('Произошла ошибка в получении клиентов!');
@@ -123,6 +119,12 @@ const PayPage = () => {
     }
   };
 
+
+  const fetchData = async() => {
+    const response = await fetchWithRetry('/clients', 'GET');
+    setClients(response);
+  }
+  
   const handleOpen = (client) => {
     console.log(client);
     setPayment(client);

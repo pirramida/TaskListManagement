@@ -63,6 +63,7 @@ const ClientForm: React.FC = () => {
   const [client, setClient] = useState({
     name: "",
     age: 0,
+    birthDate: "",
     gender: "Male",
     phone: "",
     photo: null,
@@ -81,6 +82,7 @@ const ClientForm: React.FC = () => {
   const [clientReset, setClientReset] = useState({
     name: "",
     age: 0,
+    birthDate: "",
     gender: "Male",
     phone: "",
     photo: null,
@@ -108,6 +110,20 @@ const ClientForm: React.FC = () => {
       return 0.515 * weight + 0.16 * age - 9.4 * 0 - 4.7;
     }
   };
+
+  useEffect(() => {
+    if (client.birthDate) {
+      const birth = new Date(client.birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      setClient((prev) => ({ ...prev, age }));
+    }
+  }, [client.birthDate]);
+  
   
   useEffect(() => {
     if (client.weight > 0 && client.age > 0) {
@@ -199,21 +215,34 @@ const ClientForm: React.FC = () => {
               />
             </Grid>
 
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                fullWidth
+                label="Дата рождения"
+                type="date"
+                value={client.birthDate}
+                onChange={(e) => handleInputChange("birthDate", e.target.value)}
+                required
+                disabled={!editMode}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Grid>
+
             <Grid item xs={12} sm={6} md={2}>
               <TextField
                 fullWidth
                 label="Возраст"
                 type="number"
                 value={client.age}
-                onChange={(e) => handleInputChange("age", Number(e.target.value))}
-                required
-                disabled={!editMode}
+                disabled
                 InputProps={{
                   endAdornment: <Cake color="action" />,
                 }}
                 size="small"
               />
             </Grid>
+
 
             <Grid item xs={12} sm={6} md={2}>
               <FormControl fullWidth size="small">

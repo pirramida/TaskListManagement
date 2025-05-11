@@ -155,33 +155,30 @@ import {
               Клиент *
             </Typography>
             <Autocomplete
-  options={Array.isArray(clients) ? clients : []}
-  getOptionLabel={(option) => option?.name || ''}
-  renderInput={(params) => (
-    <TextField 
-      {...params} 
-      placeholder="Начните вводить имя"
-      InputProps={{
-        ...params.InputProps,
-        startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />
-      }}
-    />
-  )}
-  value={client}
-  onChange={(event, newValue) => {
-    if ((clients?.length || 0) > 1) {
-      setClient(newValue);
-    }
-  }}
-  openOnFocus={(clients?.length || 0) > 1}
-  disableClearable
-  fullWidth
-  disabled={(clients?.length || 0) === 0}
-/>
-
-
+              options={Array.isArray(clients) ? clients : []}
+              getOptionLabel={(option) => option?.name || ''}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  placeholder="Начните вводить имя"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />
+                  }}
+                />
+              )}
+              value={client}
+              onChange={(event, newValue) => {
+                if ((clients?.length || 0) > 1) {
+                  setClient(newValue);
+                }
+              }}
+              openOnFocus={(clients?.length || 0) > 1}
+              disableClearable
+              fullWidth
+              disabled={(clients?.length || 0) === 0}
+            />
           </Box>
-
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
               Сумма оплаты *

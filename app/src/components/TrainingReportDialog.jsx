@@ -33,7 +33,6 @@ import {
   SentimentVeryDissatisfied
 } from '@mui/icons-material';
 import { fetchWithRetry } from '../utils/refreshToken';
-import { addToast } from '../utils/addToast';
 
 const absenceReasons = ['Заболел', 'Забыл', 'Личные дела', 'Отпуск', 'Предупредил заранее', 'Не предупредил заранее', 'Заболел ребенок', 'Неизвестно'];
 const conditionOptions = [
@@ -45,22 +44,21 @@ const conditionOptions = [
 ];
 const intensityOptions = ['Лёгкая', 'Средняя', 'Тяжёлая', 'До отказа', 'Интервальная'];
 
-export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) => {
+export default function TrainingReportDialog({ open, onClose, clientId, clientName }) {
   const [view, setView] = useState('completed');
-    const [form, setForm] = useState({
-      conditionAfter: '',
-      conditionBefore: '',
-      intensity: '',
-      rating: 0,
-      comment: '',
-      reason: '',
-      reschedule: '',
-      writeoffComment: ''
+  const [form, setForm] = useState({
+    conditionAfter: '',
+    conditionBefore: '',
+    intensity: '',
+    rating: 0,
+    comment: '',
+    reason: '',
+    reschedule: '',
+    writeoffComment: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [writeoffAction, setWriteoffAction] = useState('writeoff');
-
 
   const validateForm = () => {
     const newErrors = {};
@@ -85,15 +83,15 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
-  
+
   const handleSubmit = async () => {
     if (view !== 'simple' && view !== 'missed' && !validateForm()) return;
   
     setIsSubmitting(true);
     try {
       const payload = {
-        clientId: client.id,
-        clientName: client.name,
+        clientId,
+        clientName,
         type: view,
         ...form
       };
@@ -103,14 +101,8 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
         payload.action = writeoffAction;
       }
   
-      const response = await fetchWithRetry('/payment_history', 'PATCH', { client: client, payload: payload });
-      
-      if (!response.status) {
-        addToast('errorWriteOffSession', 'error', 'Ошибка списания тренировоки', 1000);
-        return
-      }
-      fetchDataQuantity();
-      addToast('successWriteOffSession', 'success', `Тренировки успешно списана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`, 1000);
+      console.log('payloadpayload', payload); // теперь должен появиться
+    //   const response = await fetchWithRetry('/payment_history', 'PATCH', { client: client });
       onClose();
     } catch (error) {
       console.error('Ошибка отправки отчета:', error);
@@ -144,7 +136,7 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" fontWeight="bold">
-            {client.name}
+            {clientName}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Chip
@@ -358,4 +350,3 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
     </Dialog>
   );
 }
-export default WriteOffSessions;
