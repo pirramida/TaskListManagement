@@ -549,7 +549,7 @@ const MainPage = () => {
             }}
           >
             {upcomingWorkouts.map(workout => {
-              const client = todayClients.find(c => c.id === workout.clientId);
+              const client = tomorrowClients.find(c => c.id === workout.clientId);
               if (!client) return null;
               
               return (

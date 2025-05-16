@@ -102,7 +102,7 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       if (view === 'simple' || view === 'missed') {
         payload.action = writeoffAction;
       }
-  
+      console.log('asdasdasdadasd');
       const response = await fetchWithRetry('/payment_history', 'PATCH', { client: client, payload: payload });
       
       if (!response.status) {
