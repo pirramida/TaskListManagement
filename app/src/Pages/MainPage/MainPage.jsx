@@ -100,7 +100,7 @@ const MainPage = () => {
       setTomorrowClients(data.events.tomorrowClients);
 
       // Формируем данные для тренировок
-      const completed = data.events.todayClients.map(client => ({
+      const completed = data.events.todayClients?.map(client => ({
         ...client,
         clientId: client.id,
         date: formatDate(client.start),
@@ -200,7 +200,7 @@ const MainPage = () => {
   };
 
   // Формируем upcomingWorkouts из todayClients
-  const upcomingWorkouts = tomorrowClients.map(client => ({
+  const upcomingWorkouts = tomorrowClients?.map(client => ({
     clientId: client.id,
     date: formatDate(client.start),
     workoutType: "Тренировка",
