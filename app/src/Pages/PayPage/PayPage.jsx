@@ -1,20 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Paper, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+import {
+  Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   MenuItem,
   Autocomplete,
   Chip,
@@ -32,15 +18,16 @@ import {
   Checkbox,
   ListItemText,
 } from '@mui/material';
-import { 
-  Add, 
-  Search, 
-  DateRange, 
-  AttachMoney, 
+import {
+  Add,
+  Search,
+  DateRange,
+  AttachMoney,
   Close,
   FilterList,
   Print,
-  FileDownload
+  FileDownload,
+  History
 } from '@mui/icons-material';
 
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -66,8 +53,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PaymentsTable from '../../components/PaymentsTable';
 import AddPaymentDialog from '../../components/AddPaymentDialog';
 import PaymentDetailsDialog from '../../components/DialogOpenDetails';
-
-
+import WriteOffTable from '../../components/WriteOffTableT';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -89,15 +75,18 @@ const PayPage = () => {
 
   const [payments, setPayments] = useState([]);
   const [openFilter, setOpenFilter] = useState(false);
-  const [statistic, setStatistic] = useState({cashInMonth: 0, sessionsInMonth: 0, averageReceipt: 0 });
+  const [statistic, setStatistic] = useState({ cashInMonth: 0, sessionsInMonth: 0, averageReceipt: 0 });
 
+  const [filters, setFilters] = useState({});
+  // Переключатель таблиц
+  const [showPayments, setShowPayments] = useState(false);
 
   useEffect(() => {
     try {
       fetchData();
     } catch (error) {
       console.error('Произошла ошибка в получении клиентов!');
-    } 
+    }
   }, [openDialog]);
 
   useEffect(() => {
@@ -112,7 +101,7 @@ const PayPage = () => {
     try {
       const response1 = await fetchWithRetry('/payment_history', 'GET');
       const response2 = await fetchWithRetry('/users', 'GET');
-      setStatistic({cashInMonth: response2[0].cashInMonth, sessionsInMonth: response2[0].sessionsInMonth, averageReceipt: (response2[0].cashInMonth/response2[0].sessionsInMonth).toFixed(2) });
+      setStatistic({ cashInMonth: response2[0].cashInMonth, sessionsInMonth: response2[0].sessionsInMonth, averageReceipt: (response2[0].cashInMonth / response2[0].sessionsInMonth).toFixed(2) });
       setPayments(response1)
     } catch (error) {
       addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
@@ -120,20 +109,15 @@ const PayPage = () => {
   };
 
 
-  const fetchData = async() => {
+  const fetchData = async () => {
     const response = await fetchWithRetry('/clients', 'GET');
     setClients(response);
   }
-  
+
   const handleOpen = (client) => {
     console.log(client);
     setPayment(client);
     setOpenDetils(true);
-  };
-
-
-  const handleEdit = () => {
-    setIsEditing(true);
   };
 
   const handleSave = () => {
@@ -148,7 +132,7 @@ const PayPage = () => {
   };
 
   const getFieldIcon = (name) => {
-    switch(name) {
+    switch (name) {
       case 'amount': return <PaidIcon fontSize="small" />;
       case 'client': return <PersonIcon fontSize="small" />;
       case 'date':
@@ -184,7 +168,7 @@ const PayPage = () => {
 
   const handleApplyFilters = (filters) => {
     let result = [...payments];
-    
+    setFilters(prev => ({ ...prev, ...filters }));
     // Фильтрация по дате
     if (filters.dateFrom) {
       result = result.filter(p => new Date(p.date) >= new Date(filters.dateFrom));
@@ -192,14 +176,14 @@ const PayPage = () => {
     if (filters.dateTo) {
       result = result.filter(p => new Date(p.date) <= new Date(filters.dateTo));
     }
-    
+
     // Фильтрация по имени
     if (filters.clientName) {
-      result = result.filter(p => 
+      result = result.filter(p =>
         p.client.toLowerCase().includes(filters.clientName.toLowerCase())
       );
     }
-    
+
     // Фильтрация по сумме
     if (filters.amountType && filters.amountType !== 'custom') {
       const [min, max] = filters.amountType.split('-').map(Number);
@@ -208,30 +192,33 @@ const PayPage = () => {
       const amount = Number(filters.customAmount);
       result = result.filter(p => p.amount >= amount);
     }
-    
+
     // Фильтрация по статусу
     if (filters.statuses?.length > 0) {
       result = result.filter(p => filters.statuses.includes(p.status));
     }
-    
+
     // Фильтрация по типу
     if (filters.types?.length > 0) {
       result = result.filter(p => filters.types.includes(p.type));
     }
-    
+
     setFilteredPayments(result);
   };
 
-// В рендере:
+  const toggleHistory = () => {
+    setShowPayments((prev) => !prev);
+  }
+  // В рендере:
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
       {/* Заголовок и кнопки */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 3 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3
       }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Финансы ЮлькоФит
@@ -247,15 +234,15 @@ const PayPage = () => {
               setOpenFilter(false);
             }}
           />
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={<Print />}
             sx={{ mr: 2 }}
           >
             Печать
           </Button>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={<FileDownload />}
           >
             Экспорт
@@ -264,15 +251,15 @@ const PayPage = () => {
       </Box>
 
       {/* Статистика */}
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 3, 
+      <Box sx={{
+        display: 'flex',
+        gap: 3,
         mb: 4,
         flexWrap: 'wrap'
       }}>
-        <Paper sx={{ 
-          p: 3, 
-          flexGrow: 1, 
+        <Paper sx={{
+          p: 3,
+          flexGrow: 1,
           borderRadius: 3,
           background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
           color: 'white'
@@ -281,9 +268,9 @@ const PayPage = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.cashInMonth} ₽</Typography>
           <Typography variant="body2">за текущий месяц</Typography>
         </Paper>
-        <Paper sx={{ 
-          p: 3, 
-          flexGrow: 1, 
+        <Paper sx={{
+          p: 3,
+          flexGrow: 1,
           borderRadius: 3,
           background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
           color: 'white'
@@ -292,9 +279,9 @@ const PayPage = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.sessionsInMonth}</Typography>
           <Typography variant="body2">за текущий месяц</Typography>
         </Paper>
-        <Paper sx={{ 
-          p: 3, 
-          flexGrow: 1, 
+        <Paper sx={{
+          p: 3,
+          flexGrow: 1,
           borderRadius: 3,
           background: 'linear-gradient(135deg, #f46b45 0%, #eea849 100%)',
           color: 'white'
@@ -306,31 +293,79 @@ const PayPage = () => {
       </Box>
 
       {/* Кнопка добавления и таблица */}
-      <Box sx={{ mb: 2 }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        {/* Левая кнопка-заглушка или пустота */}
+        <Box sx={{ flex: 1 }} />
+
+        {/* Кнопка по центру */}
         <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => setOpenDialog(true)}
+          variant="outlined"
+          onClick={toggleHistory}
+          startIcon={<History />}
           sx={{
-            background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+            color: '#6a11cb',
+            borderColor: '#6a11cb',
             borderRadius: 3,
             px: 4,
-            py: 1.5,
-            boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+            py: 1.2,
+            fontWeight: 600,
+            textTransform: 'none',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)'
-            }
+              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+              color: '#fff',
+              borderColor: 'transparent',
+              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+            },
           }}
         >
-          Добавить оплату
+          {showPayments ? 'История списаний' : 'История оплат'}
         </Button>
+
+        {/* Кнопка справа */}
+        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setOpenDialog(true)}
+            sx={{
+              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+              borderRadius: 3,
+              px: 4,
+              py: 1.5,
+              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
+                background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+              },
+            }}
+          >
+            Добавить оплату
+          </Button>
+        </Box>
       </Box>
 
-      <PaymentsTable 
-        payments={payments}
-        filteredPayments={filteredPayments}
-        handleOpen={handleOpen}
-      />
+      {/* Таблица вывода оплат */}
+      {!showPayments ? (
+        <PaymentsTable
+          payments={payments}
+          filteredPayments={filteredPayments}
+          handleOpen={handleOpen}
+        />
+      ) : (
+        <WriteOffTable
+          filters={filters}
+        />
+      )}
 
       {/* Диалог добавления оплаты */}
       <AddPaymentDialog
@@ -341,7 +376,7 @@ const PayPage = () => {
         setClient={setClient}
         client={client}
       />
-      
+
       {/* Диалог деталей о оплате */}
       <PaymentDetailsDialog
         open={openDetils}
@@ -354,11 +389,10 @@ const PayPage = () => {
         getFieldIcon={getFieldIcon}
         renderStatusChip={renderStatusChip}
       />
-
     </Box>
-    
+
   );
-  
+
 };
 
 const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisplay, ...props }) => {
@@ -375,9 +409,9 @@ const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisp
     }}>
       <Box display="flex" alignItems="center" mb={1}>
         {icon && (
-          <Avatar sx={{ 
-            width: 24, 
-            height: 24, 
+          <Avatar sx={{
+            width: 24,
+            height: 24,
             mr: 1,
             bgcolor: 'primary.main',
             color: 'primary.contrastText'
@@ -389,7 +423,7 @@ const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisp
           {label}
         </Typography>
       </Box>
-      
+
       {editing ? (
         <TextField
           name={name}
@@ -414,7 +448,7 @@ const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisp
         />
       ) : (
         customDisplay || (
-          <Typography variant="body1" sx={{ 
+          <Typography variant="body1" sx={{
             fontWeight: 500,
             color: value ? 'text.primary' : 'text.disabled'
           }}>
@@ -493,8 +527,8 @@ const FilterModal = ({ clients, payments, onApplyFilters }) => {
 
   return (
     <>
-      <Button 
-        variant="contained" 
+      <Button
+        variant="contained"
         startIcon={<FilterList />}
         sx={{ mr: 2 }}
         onClick={handleClick}
@@ -669,15 +703,15 @@ const FilterModal = ({ clients, payments, onApplyFilters }) => {
         <Divider sx={{ my: 1 }} />
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             onClick={resetFilters}
             sx={{ borderRadius: 2 }}
           >
             Сбросить
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={applyFilters}
             sx={{ borderRadius: 2 }}
           >

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Button, Paper, Box,
-  useTheme, useMediaQuery, Avatar,TextField
+  useTheme, useMediaQuery, Avatar, TextField
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -9,7 +9,6 @@ import {
   Edit as EditIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisplay, ...props }) => {
   return (
