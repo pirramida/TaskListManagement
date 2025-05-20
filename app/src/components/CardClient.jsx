@@ -26,6 +26,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WriteOffTable from '../components/WriteOffTableT';
+import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
 
 const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
   const theme = useTheme();
@@ -787,65 +788,9 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
               {activeTab === 1 && (
                 <Box>
                   <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Динамика изменений
+                    Таблица изменений веса
                   </Typography>
-
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={8}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        height: 400,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                          График изменения веса
-                        </Typography>
-                        <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                          <Typography color="text.secondary">График будет здесь</Typography>
-                        </Box>
-                      </Paper>
-                    </Grid>
-
-                    <Grid item xs={12} md={4}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        height: 400,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                          Последние замеры
-                        </Typography>
-
-                        <Box sx={{ '& > div': { mb: 2 } }}>
-                          {[
-                            { label: 'Начальный вес', value: '78 кг', date: '15.01.2023' },
-                            { label: 'Текущий вес', value: '70 кг', date: '20.06.2023' },
-                            { label: 'Изменение', value: '-8 кг', date: 'за 5 месяцев' }
-                          ].map((item, index) => (
-                            <Paper key={index} sx={{
-                              p: 2,
-                              mb: 2,
-                              background: theme.palette.background.default
-                            }}>
-                              <Typography variant="body2" fontWeight={500}>
-                                {item.label}
-                              </Typography>
-                              <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography variant="h6" fontWeight={600}>
-                                  {item.value}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {item.date}
-                                </Typography>
-                              </Box>
-                            </Paper>
-                          ))}
-                        </Box>
-                      </Paper>
-                    </Grid>
-                  </Grid>
+                  <TableParamWoman />
                 </Box>
               )}
 
