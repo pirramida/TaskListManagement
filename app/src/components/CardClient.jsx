@@ -786,11 +786,16 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
               )}
 
               {activeTab === 1 && (
-                <Box>
-                  <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Таблица изменений веса
-                  </Typography>
-                  <TableParamWoman />
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ mr: 2 }}>
+                    {/* Заглушка */}
+                    <Typography variant="body2" color="text.secondary">
+                      Заглушка
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <TableParamWoman />
+                  </Box>
                 </Box>
               )}
 
