@@ -1,19 +1,396 @@
-.table-wrapper {
+:root {
+  --primary-color: #4285f4;
+  --secondary-color: #34a853;
+  --accent-color: #ea4335;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #757575;
+  --text-color: #212121;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --transition: all 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #fafafa;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h2, h3, h4 {
+  margin-bottom: 2px;
+  color: var(--text-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+h4 {
+  font-size: 1rem;
+}
+
+/* Основной вид */
+.main-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Секция первичных фото */
+.primary-section {
+  width: 105vh;
+  background: white;
+  padding: 5px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.photo-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.photo-type {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+}
+
+.upload-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  border: 2px dashed var(--medium-gray);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.upload-area:hover {
+  border-color: var(--primary-color);
+  background: rgba(66, 133, 244, 0.05);
+}
+
+.upload-btn {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.upload-btn:hover {
+  background: #3367d6;
+}
+
+/* Секция папок */
+.folders-section {
+  background: white;
+  padding: 5px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.folders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.action-btn.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #3367d6;
+}
+
+.action-btn.compare {
+  background: var(--secondary-color);
+  color: white;
+  font-size: 1rem;
+  padding: 12px 24px;
+}
+
+.action-btn.compare:hover {
+  background: #2d9249;
+}
+
+.empty-folders {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 20px;
+  color: var(--dark-gray);
+}
+
+.folders-container {
+  display: flex;
+  gap: 20px;
+}
+
+.folders-list {
+  max-height: 17.5vh; /* Примерная высота, которая вмещает 4 папки — подстрой по дизайну */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Между папками, если нужно */
+}
+
+
+.photo-container {
+  position: relative;
+  display: inline-block;
+}
+
+.delete-icon {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.delete-icon:hover {
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+}
+
+
+.folder-item {
+  padding: 6px 8px;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.folder-item:hover {
+  background: var(--light-gray);
+}
+
+.folder-item.active {
+  border-color: var(--primary-color);
+  background: rgba(66, 133, 244, 0.1);
+}
+
+.folder-item.selected {
+  border-color: var(--secondary-color);
+  background: rgba(52, 168, 83, 0.1);
+}
+
+.folder-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-photos-count {
+  margin: 0 10px;
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+}
+
+.folder-content {
+  flex: 1;
+}
+
+.folder-header {
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.folder-name-edit {
+  display: flex;
+  gap: 10px;
+}
+
+.folder-name-edit input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  font-size: 1.2rem;
+}
+
+.folder-name-edit button {
+  padding: 0 12px;
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+.folder-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.folder-photo-type {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compare-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Режим сравнения */
+.compare-view {
+  background: white;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.back-btn {
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  background: none;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.back-btn:hover {
+  background: var(--light-gray);
+}
+
+.comparison-container {
+  display: flex;
+  gap: 30px;
   overflow-x: auto;
-  max-width: 100%;
+  padding-bottom: 20px;
 }
 
-table {
-  border-collapse: collapse;
-  min-width: 800px;
+.comparison-column {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
+.comparison-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--medium-gray);
 }
 
-.correction-header {
-  background-color: #f0f0f0;
+.comparison-date {
+  color: var(--dark-gray);
+  font-size: 0.9rem;
 }
+
+.comparison-photos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.comparison-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.photo-full {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+}
+
+.photo-missing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  background: var(--light-gray);
+  border-radius: var(--border-radius);
+  color: var(--dark-gray);
+  font-style: italic;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .folders-container {
+    flex-direction: column;
+  }
+  
+  .folders-list {
+    flex: 1;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  
+  .folder-item {
+    flex: 0 0 auto;
+    width: 200px;
+  }
+  
+  .comparison-container {
+    flex-direction: column;
+  }
+  
+  .comparison-column {
+    flex: 1;
+  }
+}
+

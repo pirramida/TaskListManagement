@@ -27,6 +27,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WriteOffTable from '../components/WriteOffTableT';
 import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
+import ClientsFoto from '../components/ClientFoto/ClientFoto.jsx'
 
 const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
   const theme = useTheme();
@@ -786,15 +787,14 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
               )}
 
               {activeTab === 1 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <Box sx={{ mr: 2 }}>
-                    {/* Заглушка */}
                     <Typography variant="body2" color="text.secondary">
-                      Заглушка
+                      <ClientsFoto clientId={client.id}/>
                     </Typography>
                   </Box>
                   <Box>
-                    <TableParamWoman />
+                    <TableParamWoman clientId={client.id}/>
                   </Box>
                 </Box>
               )}
