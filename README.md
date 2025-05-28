@@ -37,8 +37,8 @@
 ## Используемые технологии
 
 - **Frontend**: React.js
-- **Backend**: Node.js, Express
-- **База данных**: MySQL
+- **Backend**: Nest.js
+- **База данных**: SQLite
 - **Дополнительно**: REST API, Google OAuth, Google Calendar API
 
 ## Планы на будущее
