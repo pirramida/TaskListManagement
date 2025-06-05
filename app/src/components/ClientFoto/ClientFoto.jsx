@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./ClientFoto.css";
 import {
   Dialog,
@@ -41,6 +41,61 @@ const App = ({ clientId }) => {
   const [editFolderName, setEditFolderName] = useState("");
   const [fullscreenPhoto, setFullscreenPhoto] = useState(null);
   const [fullscreenPair, setFullscreenPair] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [photos, setPhotos] = useState([]);
+
+  useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const response = await fetchWithRetry(
+          `/clients_foto/get-folders?clientId=${clientId}`
+        );
+        const normalizedFolders = response.map((folder) => {
+          const input = folder.nameFolder;
+          const regex = /^(.*?)(\d{2}-\d{2}-\d{4}- \d{2}-\d{2}-\d{2})$/;
+
+          const match = input.match(regex);
+
+          if (match) {
+            const title = match[1].trim(); // "Без названия"
+            const date = match[2].trim(); // "01-06-2025- 15-23-25"
+
+            const now = new Date(); // заглушка, если нет даты
+            return {
+              id: folder.id,
+              customLabel: title,
+              createdAt: now.toISOString(),
+              createdAtFormatted: date,
+              photos: {
+                front: null,
+                side: null,
+                back: null,
+              },
+            };
+          }
+        });
+
+        setFolders(normalizedFolders);
+      } catch (err) {
+        console.error("Ошибка при загрузке папок:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchPhotos = async () => {
+      try {
+        const data = await fetchWithRetry(
+          `/clients_foto/get-photos?folderId=${clientId}`
+        );
+        setPhotos(data); // это массив фото
+      } catch (err) {
+        console.error("Ошибка при загрузке фотографий:", err);
+      }
+    };
+    fetchFolders();
+    fetchPhotos();
+  }, [clientId]);
 
   const handlePrimaryUpload = (type, e) => {
     const file = e.target.files[0];
@@ -58,7 +113,7 @@ const App = ({ clientId }) => {
     reader.readAsDataURL(file);
   };
 
-  const createNewFolder = () => {
+  const createNewFolder = async () => {
     const now = new Date();
     const createdAtFormatted = now.toLocaleString("ru-RU", {
       day: "2-digit",
@@ -69,20 +124,76 @@ const App = ({ clientId }) => {
       second: "2-digit",
     });
 
-    const newFolder = {
-      id: Date.now(),
-      createdAt: now.toISOString(),
-      createdAtFormatted, // неизменяемая часть
-      customLabel: "", // пользователь добавит позже
-      photos: { front: null, side: null, back: null },
-    };
+    const newFolderName = `Без названия ${createdAtFormatted.replace(/[,:.]/g, "-")}`;
 
-    setFolders((prev) => [newFolder, ...prev]);
+    try {
+      // 🔥 запрос к серверу
+      const response = await fetchWithRetry(
+        "/clients_foto/create-folder",
+        "POST",
+        {
+          userId: 1,
+          clientId,
+          folderName: newFolderName,
+        }
+      );
+      const { id } = response;
+
+      const newFolder = {
+        id,
+        createdAt: now.toISOString(),
+        createdAtFormatted,
+        customLabel: "",
+        photos: { front: null, side: null, back: null },
+      };
+
+      setFolders((prev) => [newFolder, ...prev]);
+    } catch (error) {
+      console.error("Не удалось создать папку на сервере", error);
+    }
   };
 
-  const handleFolderClick = (folder) => {
+  const handleFolderClick = async (folder) => {
     setCurrentFolder(folder);
-    setEditFolderName(folder.customLabel); // только вторая часть
+    setEditFolderName(folder.customLabel);
+
+    try {
+      // 🔥 Загружаем фото из папки по folder.id
+      const data = await fetchWithRetry(
+        `/clients_foto/get-photos?folderId=${folder.id}`
+      );
+
+      // 🔁 Обновляем фото в папке
+      const photosByType = {
+        front: null,
+        side: null,
+        back: null,
+      };
+      const SERVER_URL = "http://localhost:5000"; // или https://yourdomain.com
+
+      data.forEach((photo) => {
+        const { type, url } = photo;
+        console.log("type, url", type, url);
+        if (type in photosByType) {
+          photosByType[type] = {
+            url: SERVER_URL + url,
+            date: photo.uploaded_at,
+          };
+        }
+      });
+      console.log("datadatadata", photosByType);
+      // Обновляем currentFolder с фото
+      const updatedFolder = { ...folder, photos: photosByType };
+      setCurrentFolder(updatedFolder);
+
+      // Также обновляем в списке folders
+      setFolders((prev) =>
+        prev.map((f) => (f.id === folder.id ? updatedFolder : f))
+      );
+    } catch (error) {
+      console.error("Ошибка при загрузке фото для папки:", error);
+    }
+
     setEditDialogOpen(true);
   };
 
@@ -96,7 +207,7 @@ const App = ({ clientId }) => {
   const handleFolderPhotoUpload = async (type, e) => {
     const file = e.target.files[0];
     if (!file || !currentFolder) return;
-    
+
     const folderLabel = currentFolder.customLabel?.trim();
     const formattedDate = currentFolder.createdAtFormatted
       .replace(/,/g, "---") // запятая → |
@@ -107,11 +218,12 @@ const App = ({ clientId }) => {
       ? `${folderLabel} ${formattedDate}`
       : `Без названия ${formattedDate}`;
 
+    console.log("currentFoldercurrentFolder", currentFolder);
     const formData = new FormData();
     formData.append("file", file); // загружаемое фото
-    formData.append("clientsId", clientId); // ID клиента
-    formData.append("userId", "0"); // пока заглушка
-    formData.append("folderId", folderName);
+    formData.append("clientId", clientId); // ID клиента
+    formData.append("userId", 0); // пока заглушка
+    formData.append("folderId", currentFolder.id);
     formData.append("type", type); // тип фото: front | side | back
     formData.append("isPrimary", "false"); // не первичное фото
     formData.append("comment", currentFolder.customLabel || ""); // описание из UI
@@ -127,15 +239,16 @@ const App = ({ clientId }) => {
       );
 
       if (!response.ok) throw new Error("Ошибка загрузки");
-
+      console.log(response);
       const data = await response.json();
 
       // Обновим путь к сохраненной фотографии на сервере
+      const SERVER_URL = "http://localhost:5000"; // или https://yourdomain.com
       const photoData = {
-        url: data.url, // предполагается, что сервер вернет путь к файлу
+        url: SERVER_URL + data.url,
         date: new Date().toISOString(),
       };
-
+      console.log("photoDataphotoData", photoData);
       setFolders((prev) =>
         prev.map((f) =>
           f.id === currentFolder.id
@@ -161,8 +274,14 @@ const App = ({ clientId }) => {
     }
   };
 
-  const deleteFolderPhoto = (type) => {
+  const deleteFolderPhoto = async (photo) => {
     if (!currentFolder) return;
+    try {
+      console.log('photophotophotophoto', photo)
+      const response = fetchWithRetry('/clients_foto/delete-photos', 'DELETE', )
+    } catch (err) {
+      console.error(err);
+    }
     setFolders((prev) =>
       prev.map((f) =>
         f.id === currentFolder.id
@@ -170,7 +289,7 @@ const App = ({ clientId }) => {
               ...f,
               photos: {
                 ...f.photos,
-                [type]: null,
+                [photo.type]: null,
               },
             }
           : f
@@ -180,26 +299,58 @@ const App = ({ clientId }) => {
       ...prev,
       photos: {
         ...prev.photos,
-        [type]: null,
+        [photo.type]: null,
       },
     }));
   };
 
-  const saveFolderName = () => {
-    if (!editFolderName.trim()) return;
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id
-          ? { ...f, customLabel: editFolderName.trim() }
-          : f
-      )
-    );
-    setEditDialogOpen(false);
+  const saveFolderName = async () => {
+    const trimmedName = editFolderName.trim();
+    if (!trimmedName) return;
+
+    try {
+      // 🔥 Отправляем запрос на сервер
+      await fetchWithRetry("/clients_foto/update-folder-name", "PUT", {
+        userId: 0,
+        clientId,
+        folderId: currentFolder.id,
+        newName: trimmedName + " " + currentFolder.createdAtFormatted,
+      });
+
+      // 🔁 Локально обновляем имя папки
+      setFolders((prev) =>
+        prev.map((f) =>
+          f.id === currentFolder.id
+            ? { ...f, customLabel: trimmedName } // только customLabel
+            : f
+        )
+      );
+      setCurrentFolder((prev) => ({ ...prev, customLabel: trimmedName }));
+
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Ошибка при обновлении имени папки:", error);
+    }
   };
 
-  const deleteFolder = () => {
-    setFolders((prev) => prev.filter((f) => f.id !== currentFolder.id));
-    setEditDialogOpen(false);
+  const deleteFolder = async () => {
+    if (!currentFolder) return;
+    try {
+      console.log("currentFoldercurrentFolder", currentFolder);
+      const userId = 1;
+
+      await fetchWithRetry("/clients_foto/delete-folder", "DELETE", {
+        userId,
+        clientId,
+        folderId: currentFolder.id, // числовой ID из базы
+      });
+
+      setFolders((prev) => prev.filter((f) => f.id !== currentFolder.id));
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Ошибка при удалении папки:", error);
+      alert("Не удалось удалить папку. Попробуйте ещё раз.");
+    }
   };
 
   const toggleFolderSelection = (folderId) => {
@@ -295,8 +446,9 @@ const App = ({ clientId }) => {
               + Новая папка
             </button>
           </div>
-
-          {folders.length > 0 ? (
+          {loading ? (
+            <p>Загрузка...</p>
+          ) : folders.length > 0 ? (
             <div className="folders-list">
               {folders.map((folder) => (
                 <div
@@ -379,7 +531,7 @@ const App = ({ clientId }) => {
                         onClick={() => setFullscreenPhoto(photo.url)}
                         style={{ cursor: "pointer" }}
                       />
-                      <Button onClick={() => deleteFolderPhoto(type)}>
+                      <Button onClick={() => deleteFolderPhoto(photo)}>
                         Удалить
                       </Button>
                     </>
@@ -416,7 +568,6 @@ const App = ({ clientId }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Диалог сравнения */}
       {/* Диалог сравнения */}
       <Dialog
         fullScreen
