@@ -27,7 +27,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const App = ({ clientId }) => {
+const ClientFoto = ({ clientId }) => {
   const [primaryPhotos, setPrimaryPhotos] = useState({
     front: null,
     side: null,
@@ -43,6 +43,9 @@ const App = ({ clientId }) => {
   const [fullscreenPair, setFullscreenPair] = useState(null);
   const [loading, setLoading] = useState(true);
   const [photos, setPhotos] = useState([]);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?.id;
 
   useEffect(() => {
     const fetchFolders = async () => {
@@ -113,8 +116,41 @@ const App = ({ clientId }) => {
         console.error("Ошибка при загрузке фотографий:", err);
       }
     };
+
+    const getPrimaryPhotos = async () => {
+      try {
+        const data = await fetchWithRetry(
+          `/clients_foto/get-primary-photos?isPrimary=1&clientId=${clientId}&userId=${userId}`
+        );
+
+        // 🔁 Преобразуем массив в объект { front, side, back }
+        const grouped = {
+          front: null,
+          side: null,
+          back: null,
+        };
+
+        data.forEach((photo) => {
+          if (["front", "side", "back"].includes(photo.type)) {
+            grouped[photo.type] = {
+              url: photo.url,
+              date: photo.uploaded_at,
+              id: photo.id,
+              comment: photo.comment,
+            };
+          }
+        });
+
+        setPrimaryPhotos(grouped);
+      } catch (err) {
+        console.error("Ошибка при загрузке фотографий:", err);
+      }
+    };
+
+
     fetchFolders();
     fetchPhotos();
+    getPrimaryPhotos();
   }, [clientId]);
 
   const handlePrimaryUpload = async (type, e) => {
@@ -145,7 +181,7 @@ const App = ({ clientId }) => {
     formData.append("originalName", ""); // описание из UI
 
     try {
-      const response = await fetchWithRetry('/clients_foto/upload', 'POST', formData);
+      const response = await fetchWithRetry('/clients_foto/upload-primary-photo', 'POST', formData);
 
       console.log('Фото загружено:', response);
     } catch (err) {
@@ -425,18 +461,18 @@ const App = ({ clientId }) => {
                 {primaryPhotos[type] ? (
                   <div className="photo-container">
                     <img
-                      src={primaryPhotos[type].url}
+                      src={`https://localhost:5000${primaryPhotos[type].url}`}
                       alt={label}
                       className="photo-preview"
                       onClick={() =>
-                        setFullscreenPhoto(primaryPhotos[type].url)
+                        setFullscreenPhoto(`https://localhost:5000${primaryPhotos[type].url}`)
                       }
                       style={{ cursor: "pointer" }}
                     />
                     <IconButton
                       size="small"
                       className="delete-icon"
-                      onClick={() => deletePrimaryPhoto(type)}
+                      onClick={() => deleteFolderPhoto(primaryPhotos)}
                     >
                       <CloseIcon fontSize="small" />
                     </IconButton>
@@ -867,4 +903,4 @@ const App = ({ clientId }) => {
   );
 };
 
-export default App;
+export default ClientFoto;
