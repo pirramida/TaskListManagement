@@ -2,20 +2,32 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './LoginPage.css';
 import { TextField, Button, Typography, Paper, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { fetchWithRetry } from '../../utils/refreshToken';
+import { useNavigate } from 'react-router-dom';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = ({ setUser }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
+    const navigate = useNavigate();
 
     const login = async () => {
         try {
-            const response = await axios.post('/users/auth/login', {
+            const response = await fetchWithRetry('/auth/login', 'POST', {
                 username,
                 password,
             });
-            localStorage.setItem('token', response.data.access_token);
-            onLogin?.();
+            response.user.googleCalendar = '';
+            response.user.phone = '';
+
+            if (response.user) {
+                setUser(response.user);
+                localStorage.setItem('user', JSON.stringify(response.user));
+                navigate('/MainPage');
+            }
+            localStorage.setItem('refresh_token', response.user.refresh_token);
+            navigate('/MainPage');
+
         } catch (err) {
             alert('Ошибка входа');
         }
@@ -23,7 +35,7 @@ const LoginPage = ({ onLogin }) => {
 
     const register = async () => {
         try {
-            await axios.post('/users/auth/register', {
+            await fetchWithRetry('/auth/register', 'POST', {
                 username,
                 password,
             });

@@ -3,7 +3,7 @@ import GoogleCalendar from "../../components/GoogleCalendar";
 import { fetchWithRetry } from "../../utils/refreshToken";
 import { addToast } from "../../utils/addToast";
 
-const TrainingCalendar = () => {
+const TrainingCalendar = ({ user }) => {
   const [statNumber, setStatNumber] = useState("");
   const [status, setStatus] = useState("");
 
@@ -14,7 +14,7 @@ const TrainingCalendar = () => {
         "GET"
       );
 
-        setStatNumber(response[0].dateUpdate);
+      setStatNumber(response[0].dateUpdate);
 
     } catch (error) {
       console.error("Ошибка при получении данных:", error);

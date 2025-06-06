@@ -1,11 +1,11 @@
 import React from "react";
 import ClientForm from "../../components/ClientForm";
 
-const AddClientPage = () => {
-    
+const AddClientPage = ({ user }) => {
+
     return (
         <>
-        <ClientForm/>
+            <ClientForm />
         </>
     );
 };

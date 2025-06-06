@@ -33,7 +33,7 @@ import {
   FilterAlt
 } from '@mui/icons-material';
 
-const AllClientsPage = () => {
+const AllClientsPage = ({ user }) => {
     const [clients, setClients] = useState([]);
     const [filterUser, setFilterUser] = useState('');
     const [filterPhone, setFilterPhone] = useState('');

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { addToast } from './addToast.jsx'
 
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'https://localhost:5000';
 
 
 export const fetchWithRetry = async (halfUrl, method, data, navigate, options = {}) => {

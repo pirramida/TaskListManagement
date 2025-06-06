@@ -60,7 +60,7 @@ const ActionButton = styled(Button)({
   },
 });
 
-const HeaderPages = () => {
+const HeaderPages = ({ user }) => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
@@ -74,7 +74,6 @@ const HeaderPages = () => {
 
   const handleMenuClose = async () => {
     const response = await fetchWithRetry('/users/refresh-events', 'GET');
-    console.log('responseresponseresponseresponse', response);
     setMobileMenuAnchor(null);
     setMoreMenuAnchor(null);
   };
@@ -185,7 +184,9 @@ const HeaderPages = () => {
           </IconButton>
           <ActionButton
             onClick={() => {
-              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              localStorage.removeItem('refresh_token');
+
               window.location.href = '/';
             }}
             sx={{

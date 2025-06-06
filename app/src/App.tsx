@@ -1,5 +1,6 @@
+// App.tsx
 import React, { useState } from 'react';
-import { Routes, Route, Link } from "react-router-dom"; // Импортируем необходимые компоненты
+import { Routes, Route, Navigate } from "react-router-dom";
 import AddClientPage from "./Pages/AddClientPage/AddClientPage";
 import HeaderPages from "./Pages/HeaderPages/HeaderPages";
 import MainPage from "./Pages/MainPage/MainPage";
@@ -9,30 +10,32 @@ import CalorieСheckPage from "./Pages/CalorieСheckPage/CalorieСheckPage";
 import AllClientsPage from "./Pages/AllClientsPage/AllClientsPage";
 import PayPage from "./Pages/PayPage/PayPage";
 import { ToastContainer } from 'react-toastify';
-import LoginPage from "./Pages/LoginPage/LoginPage.jsx";
+import LoginPage from "./Pages/LoginPage/LoginPage";
 
 const App: React.FC = () => {
-  const [onLogin, setOnLogin] = useState();
-  return (
-    <div >
-      
-      <HeaderPages />
-      
-      <Routes>
-        <Route path="/" element={<LoginPage onLogin={onLogin} />} />
-        <Route path="/addClient" element={<AddClientPage />} /> 
-        <Route path="/MainPage" element={<MainPage />} /> 
-        <Route path="/trainingCalendar" element={<TrainingCalendar />} /> 
-        <Route path="/calculators" element={<CalculationPage />} /> 
-        <Route path="/calories" element={<CalorieСheckPage />} /> 
-        <Route path="/allClients" element={<AllClientsPage />} /> 
-        <Route path="/payPage" element={<PayPage />} />
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
+  return (
+    <div>
+      {user && <HeaderPages user={user} />}
+
+      <Routes>
+        <Route path="/" element={<LoginPage setUser={setUser}/>} />
+        <Route path="/addClient" element={user ? <AddClientPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/MainPage" element={user ? <MainPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/trainingCalendar" element={user ? <TrainingCalendar user={user} /> : <Navigate to="/" />} />
+        <Route path="/calculators" element={user ? <CalculationPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/calories" element={user ? <CalorieСheckPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/allClients" element={user ? <AllClientsPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/payPage" element={user ? <PayPage user={user} /> : <Navigate to="/" />} />
       </Routes>
+
       <ToastContainer />
     </div>
   );
 };
-
 
 export default App;

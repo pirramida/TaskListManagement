@@ -50,6 +50,7 @@ const App = ({ clientId }) => {
         const response = await fetchWithRetry(
           `/clients_foto/get-folders?clientId=${clientId}`
         );
+
         const normalizedFolders = response.map((folder) => {
           const input = folder.nameFolder;
           const regex = /^(.*?)(\d{2}-\d{2}-\d{4}- \d{2}-\d{2}-\d{2})$/;
@@ -57,15 +58,30 @@ const App = ({ clientId }) => {
           const match = input.match(regex);
 
           if (match) {
-            const title = match[1].trim(); // "Без названия"
-            const date = match[2].trim(); // "01-06-2025- 15-23-25"
+            const title = match[1].trim(); // Название папки
+            const dateString = match[2].trim(); // "01-06-2025- 15-23-25"
 
-            const now = new Date(); // заглушка, если нет даты
+            // Преобразуем в ISO и создаём объект Date
+            const dateParts = dateString.split(/[-\s]/); // ["01", "06", "2025", "", "15", "23", "25"]
+            const [day, month, year, , hour, minute, second] = dateParts.map((v) => parseInt(v));
+
+            const dateObj = new Date(year, month - 1, day, hour, minute, second);
+
+            // Форматируем красиво: "01.06.2025, 15:23:25"
+            const createdAtFormatted = dateObj.toLocaleString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            });
+
             return {
               id: folder.id,
               customLabel: title,
-              createdAt: now.toISOString(),
-              createdAtFormatted: date,
+              createdAt: dateObj.toISOString(),
+              createdAtFormatted,
               photos: {
                 front: null,
                 side: null,
@@ -73,7 +89,10 @@ const App = ({ clientId }) => {
               },
             };
           }
-        });
+
+          // Вернуть null, если имя папки не подошло под шаблон
+          return null;
+        }).filter(Boolean); // удаляем null'ы, если какие-то папки не прошли
 
         setFolders(normalizedFolders);
       } catch (err) {
@@ -82,6 +101,7 @@ const App = ({ clientId }) => {
         setLoading(false);
       }
     };
+
 
     const fetchPhotos = async () => {
       try {
@@ -97,9 +117,11 @@ const App = ({ clientId }) => {
     fetchPhotos();
   }, [clientId]);
 
-  const handlePrimaryUpload = (type, e) => {
+  const handlePrimaryUpload = async (type, e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Предпросмотр
     const reader = new FileReader();
     reader.onload = (event) => {
       setPrimaryPhotos((prev) => ({
@@ -111,7 +133,26 @@ const App = ({ clientId }) => {
       }));
     };
     reader.readAsDataURL(file);
+
+    // Загрузка на сервер
+    const formData = new FormData();
+    formData.append("file", file); // загружаемое фото
+    formData.append("clientId", clientId); // ID клиента
+    formData.append("userId", 1); // пока заглушка
+    formData.append("type", type); // тип фото: front | side | back
+    formData.append("isPrimary", 1); // не первичное фото
+    formData.append("comment", ""); // описание из UI
+    formData.append("originalName", ""); // описание из UI
+
+    try {
+      const response = await fetchWithRetry('/clients_foto/upload', 'POST', formData);
+
+      console.log('Фото загружено:', response);
+    } catch (err) {
+      console.error('Ошибка при загрузке фото:', err);
+    }
   };
+
 
   const createNewFolder = async () => {
     const now = new Date();
@@ -169,7 +210,7 @@ const App = ({ clientId }) => {
         side: null,
         back: null,
       };
-      const SERVER_URL = "http://localhost:5000"; // или https://yourdomain.com
+      const SERVER_URL = "https://localhost:5000"; // или https://yourdomain.com
 
       data.forEach((photo) => {
         const { type, url } = photo;
@@ -208,16 +249,6 @@ const App = ({ clientId }) => {
     const file = e.target.files[0];
     if (!file || !currentFolder) return;
 
-    const folderLabel = currentFolder.customLabel?.trim();
-    const formattedDate = currentFolder.createdAtFormatted
-      .replace(/,/g, "---") // запятая → |
-      .replace(/[.:]/g, "-") // точки и двоеточия → -
-      .trim();
-
-    const folderName = folderLabel
-      ? `${folderLabel} ${formattedDate}`
-      : `Без названия ${formattedDate}`;
-
     console.log("currentFoldercurrentFolder", currentFolder);
     const formData = new FormData();
     formData.append("file", file); // загружаемое фото
@@ -225,7 +256,7 @@ const App = ({ clientId }) => {
     formData.append("userId", 0); // пока заглушка
     formData.append("folderId", currentFolder.id);
     formData.append("type", type); // тип фото: front | side | back
-    formData.append("isPrimary", "false"); // не первичное фото
+    formData.append("isPrimary", 0); // не первичное фото
     formData.append("comment", currentFolder.customLabel || ""); // описание из UI
     formData.append("createdAt", currentFolder.createdAt); // ISO дата
     formData.append("createdAtFormatted", currentFolder.createdAtFormatted); // читаемая
@@ -243,7 +274,7 @@ const App = ({ clientId }) => {
       const data = await response.json();
 
       // Обновим путь к сохраненной фотографии на сервере
-      const SERVER_URL = "http://localhost:5000"; // или https://yourdomain.com
+      const SERVER_URL = "https://localhost:5000"; // или https://yourdomain.com
       const photoData = {
         url: SERVER_URL + data.url,
         date: new Date().toISOString(),
@@ -253,12 +284,12 @@ const App = ({ clientId }) => {
         prev.map((f) =>
           f.id === currentFolder.id
             ? {
-                ...f,
-                photos: {
-                  ...f.photos,
-                  [type]: photoData,
-                },
-              }
+              ...f,
+              photos: {
+                ...f.photos,
+                [type]: photoData,
+              },
+            }
             : f
         )
       );
@@ -277,8 +308,9 @@ const App = ({ clientId }) => {
   const deleteFolderPhoto = async (photo) => {
     if (!currentFolder) return;
     try {
+      const date = photo.date;
       console.log('photophotophotophoto', photo)
-      const response = fetchWithRetry('/clients_foto/delete-photos', 'DELETE', )
+      const response = fetchWithRetry('/clients_foto/delete-photos', 'DELETE', { date })
     } catch (err) {
       console.error(err);
     }
@@ -286,12 +318,12 @@ const App = ({ clientId }) => {
       prev.map((f) =>
         f.id === currentFolder.id
           ? {
-              ...f,
-              photos: {
-                ...f.photos,
-                [photo.type]: null,
-              },
-            }
+            ...f,
+            photos: {
+              ...f.photos,
+              [photo.type]: null,
+            },
+          }
           : f
       )
     );

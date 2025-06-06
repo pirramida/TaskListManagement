@@ -1,6 +1,6 @@
 import React from "react";
 import CalcBZU from "../../components/CalcBZU";
-const CalculationPage = () => {
+const CalculationPage = ({ user }) => {
 
     return (
         <>
