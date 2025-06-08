@@ -240,7 +240,7 @@ export default function TableParamWoman({ clientId }) {
               "& .MuiInputBase-input": {
                 textAlign: "center",
                 fontSize: "15px",
-                padding: "4px",
+                padding: "0px",
                 border: "1px solid",
                 borderColor: "primary.main",
                 borderRadius: "4px",
@@ -392,6 +392,10 @@ export default function TableParamWoman({ clientId }) {
               },
             "& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root": {
               backgroundColor: "#e0f2fe",
+            },
+            "& .MuiInputBase-input": {
+              padding: "0px !important",
+
             },
           }}
         >
