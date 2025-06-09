@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   Box,
@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import { fetchWithRetry } from '../utils/refreshToken';
 import { addToast } from '../utils/addToast';
+import dayjs from 'dayjs';
 
 const absenceReasons = ['Заболел', 'Забыл', 'Личные дела', 'Отпуск', 'Предупредил заранее', 'Не предупредил заранее', 'Заболел ребенок', 'Неизвестно'];
 const conditionOptions = [
@@ -45,26 +46,33 @@ const conditionOptions = [
 ];
 const intensityOptions = ['Лёгкая', 'Средняя', 'Тяжёлая', 'До отказа', 'Интервальная'];
 
-export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) => {
+export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity }) => {
   const [view, setView] = useState('completed');
-    const [form, setForm] = useState({
-      conditionAfter: '',
-      conditionBefore: '',
-      intensity: '',
-      rating: 0,
-      comment: '',
-      reason: '',
-      reschedule: '',
-      writeoffComment: ''
+  const [form, setForm] = useState({
+    conditionAfter: '',
+    conditionBefore: '',
+    intensity: '',
+    rating: 0,
+    comment: '',
+    reason: '',
+    reschedule: '',
+    writeoffComment: '',
+    sessionDate: dayjs().format('YYYY-MM-DDTHH:mm')
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [writeoffAction, setWriteoffAction] = useState('writeoff');
 
+  useEffect(() => {
+    if (open) {
+      resetForm();
+      setView('completed'); // если хочешь, можно тоже сбросить view
+    }
+  }, [open]);
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (view === 'completed') {
       if (!form.conditionAfter) newErrors.conditionAfter = 'Обязательное поле';
       if (!form.conditionBefore) newErrors.conditionBefore = 'Обязательное поле';
@@ -74,7 +82,7 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       if (!form.reason) newErrors.reason = 'Укажите причину';
       if (!form.reschedule) newErrors.reschedule = 'Укажите статус переноса';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -85,10 +93,10 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
-  
+
   const handleSubmit = async () => {
     if (view !== 'simple' && view !== 'missed' && !validateForm()) return;
-  
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -97,14 +105,13 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
         type: view,
         ...form
       };
-  
-      // 👇 исправлено
+
       if (view === 'simple' || view === 'missed') {
         payload.action = writeoffAction;
       }
       console.log('asdasdasdadasd');
       const response = await fetchWithRetry('/payment_history', 'PATCH', { client: client, payload: payload });
-      
+
       if (!response.status) {
         addToast('errorWriteOffSession', 'error', 'Ошибка списания тренировоки', 1000);
         return
@@ -128,7 +135,8 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
       comment: '',
       reason: '',
       reschedule: '',
-      writeoffComment: ''
+      writeoffComment: '',
+      sessionDate: dayjs().format('YYYY-MM-DDTHH:mm')
     });
     setWriteoffAction('writeoff');
     setErrors({});
@@ -172,6 +180,15 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
+        <TextField
+          label="Дата и время тренировки"
+          type="datetime-local"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          value={form.sessionDate}
+          onChange={(e) => handleChange('sessionDate', e.target.value)}
+          sx={{ mt: 3, mb: 2 }}
+        />
 
         {view === 'simple' ? (
           <Card variant="outlined" sx={{ mb: 3 }}>
@@ -200,11 +217,11 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
                     onChange={e => handleChange('reason', e.target.value)}
                   >
                     {absenceReasons.map(opt => (
-                      <FormControlLabel 
-                        key={opt} 
-                        value={opt} 
-                        control={<Radio />} 
-                        label={opt} 
+                      <FormControlLabel
+                        key={opt}
+                        value={opt}
+                        control={<Radio />}
+                        label={opt}
                       />
                     ))}
                   </RadioGroup>
@@ -276,11 +293,11 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
                       onChange={e => handleChange('intensity', e.target.value)}
                     >
                       {intensityOptions.map(opt => (
-                        <FormControlLabel 
-                          key={opt} 
-                          value={opt} 
-                          control={<Radio />} 
-                          label={opt} 
+                        <FormControlLabel
+                          key={opt}
+                          value={opt}
+                          control={<Radio />}
+                          label={opt}
                         />
                       ))}
                     </RadioGroup>
@@ -338,15 +355,15 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity}) =>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-          <Button 
-            onClick={() => onClose()} 
-            variant="outlined" 
+          <Button
+            onClick={() => onClose()}
+            variant="outlined"
             disabled={isSubmitting}
           >
             Отмена
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleSubmit}
             disabled={isSubmitting}
             startIcon={isSubmitting ? <CircularProgress size={20} /> : null}

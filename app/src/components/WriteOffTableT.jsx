@@ -132,6 +132,7 @@ const WriteOffTable = ({ filters }) => {
                                     <InfoItem label="Списание без отчета" highlight />
                                     <InfoItem label="Клиент" value={selectedReport.clientName} />
                                     <InfoItem label="Комментарий" value={selectedReport.writeoffComment || 'не указан'} />
+                                    <InfoItem label="Когда была" value={formatDateSimple(selectedReport.sessionDate)} />
                                 </>
                             )}
 
@@ -144,6 +145,7 @@ const WriteOffTable = ({ filters }) => {
                                     <InfoItem label="Интенсивность" value={selectedReport.intensity || '—'} />
                                     <InfoItem label="Оценка" value={selectedReport.rating || '—'} />
                                     <InfoItem label="Комментарий" value={selectedReport.comment || '—'} />
+                                    <InfoItem label="Когда была" value={formatDateSimple(selectedReport.sessionDate)} />
                                 </>
                             )}
 
@@ -157,6 +159,7 @@ const WriteOffTable = ({ filters }) => {
                                         value={selectedReport.action === 'writeoff' ? 'Да' : 'Нет'}
                                         color={selectedReport.action === 'writeoff' ? 'green' : 'red'}
                                     />
+                                    <InfoItem label="Когда была" value={formatDateSimple(selectedReport.sessionDate)} />
                                 </>
                             )}
                         </Box>
@@ -189,3 +192,20 @@ const InfoItem = ({ label, value, color, highlight }) => (
         </Typography>
     </Box>
 );
+
+
+function formatDateSimple(dateString) {
+    if (!dateString) return '—';
+
+    const date = new Date(dateString);
+
+    const pad = (n) => n.toString().padStart(2, '0');
+
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1); // Месяцы от 0
+    const year = date.getFullYear();
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+}

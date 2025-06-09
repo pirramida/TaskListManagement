@@ -28,6 +28,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WriteOffTable from '../components/WriteOffTableT';
 import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
 import ClientFoto from '../components/ClientFoto/ClientFoto.jsx'
+import TableOfVisit from '../components/TableOfVisit/TableOfVisit.jsx'
 
 const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
   const theme = useTheme();
@@ -992,15 +993,10 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                         height: 400,
                         background: theme.palette.background.paper
                       }}>
-                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                          Прогресс по целям
-                        </Typography>
                         <Box height={300} display="flex" alignItems="center" justifyContent="center">
                           <Box textAlign="center">
-                            <Timeline color="disabled" sx={{ fontSize: 60, mb: 1 }} />
-                            <Typography color="text.secondary">Аналитика прогресса</Typography>
                             <Typography variant="body2" color="text.secondary" mt={1}>
-                              Здесь будет отображаться ваш прогресс в виде графиков
+                              <TableOfVisit client={client} addToast={addToast} setSelectedClient={setSelectedClient} />
                             </Typography>
                           </Box>
                         </Box>
