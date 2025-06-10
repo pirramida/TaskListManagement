@@ -108,7 +108,7 @@ const MainPage = ({ user }) => {
         time: formatTime(client.start),
         status: null
       }));
-
+      console.log('completedcompleted', completed);
       setWorkouts(completed);
     } catch (error) {
       console.error('Ошибка при получении событий:', error);
@@ -245,14 +245,11 @@ const MainPage = ({ user }) => {
       addToast('successAdd', 'success', `Успешно добвлена прошедшая тренировка ${selectedClient.name}`, 1000);
     } catch (error) {
       console.error('НЕ добавилась новая сессия почему то!');
-      addToast('errorAdd', 'error', `НЕ добавилась новая сессия почему то ${selectedClient.name}`, 1000);
+      addToast('errorAdd', 'error', `НЕ добавилась новая сессия почему то у: ${selectedClient.name}`, 1000);
     }
     setDialogOpenAddSession(false);
     fetchEvents();
   };
-
-
-
 
   return (
     <Box sx={{ padding: '24px', maxWidth: '1500px', margin: '0 auto' }}>
@@ -350,6 +347,7 @@ const MainPage = ({ user }) => {
           >
             {workouts.map((workout) => {
               const client = todayClients.find(c => c.id === workout.clientId);
+              console.log(client);
               if (!client) return null;
 
               return (
@@ -390,7 +388,7 @@ const MainPage = ({ user }) => {
                       fontWeight: 700,
                       fontSize: '1.5rem'
                     }}>
-                      {client.name.charAt(0)}
+                      {client?.name?.charAt(0)}
                     </Avatar>
                     <Box>
                       <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'common.white' }}>

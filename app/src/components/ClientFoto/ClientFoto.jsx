@@ -191,7 +191,7 @@ const ClientFoto = ({ clientId }) => {
     const formData = new FormData();
     formData.append("file", file); // загружаемое фото
     formData.append("clientId", clientId); // ID клиента
-    formData.append("userId", 1); // пока заглушка
+    formData.append("userId", userId); // пока заглушка
     formData.append("type", type); // тип фото: front | side | back
     formData.append("isPrimary", 1); // не первичное фото
     formData.append("comment", ""); // описание из UI
@@ -231,7 +231,7 @@ const ClientFoto = ({ clientId }) => {
         "/clients_foto/create-folder",
         "POST",
         {
-          userId: 1,
+          userId: userId,
           clientId,
           folderName: newFolderName,
         }
@@ -307,7 +307,7 @@ const ClientFoto = ({ clientId }) => {
     const formData = new FormData();
     formData.append("file", file); // загружаемое фото
     formData.append("clientId", clientId); // ID клиента
-    formData.append("userId", 0); // пока заглушка
+    formData.append("userId", userId); // пока заглушка
     formData.append("folderId", currentFolder.id);
     formData.append("type", type); // тип фото: front | side | back
     formData.append("isPrimary", 0); // не первичное фото
@@ -418,7 +418,7 @@ const ClientFoto = ({ clientId }) => {
 
     try {
       await fetchWithRetry("/clients_foto/update-folder-name", "PUT", {
-        userId: 0,
+        userId: userId,
         clientId,
         folderId: currentFolder.id,
         newName: fullName,
@@ -441,7 +441,6 @@ const ClientFoto = ({ clientId }) => {
     if (!currentFolder) return;
     try {
       console.log("currentFoldercurrentFolder", currentFolder);
-      const userId = 1;
 
       await fetchWithRetry("/clients_foto/delete-folder", "DELETE", {
         userId,

@@ -70,6 +70,10 @@ export default function AddPaymentDialog({
   const [payments, setPayments] = useState([]);
   const [customSessionsCount, setCustomSessionsCount] = useState(1);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?.id;
+
+  
   const handleCloseDialog = () => {
     onClose(false);
     setClient(null);
@@ -107,6 +111,7 @@ export default function AddPaymentDialog({
       try {
         const response = await fetchWithRetry("/payment_history", "POST", {
           fromData: newPayment,
+          userId: userId
         });
         console.log(response);
 

@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { fetchWithRetry } from '../utils/refreshToken';
 
-const WriteOffTable = ({ filters }) => {
+const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCardDialog }) => {
     const [writeOff, setWriteOff] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedReport, setSelectedReport] = useState(null);
@@ -18,32 +18,25 @@ const WriteOffTable = ({ filters }) => {
 
     // При изменении фильтра — ищем клиента
     useEffect(() => {
-        if (filters.clientName) {
-            fetchClientIdByName(filters.clientName);
+        console.log('filtersfiltersfilters', filtersClient);
+        if (filtersClient) {
+            setClientId(filtersClient.id);
+        } else if (filters) {
+            setClientId(filters.id);
         } else {
             setClientId(null);
         }
     }, [filters.clientName]);
 
-    const fetchClientIdByName = async (name) => {
-        try {
-            const response = await fetchWithRetry('/clients', 'GET');
-            const client = response.find(c => c.name === name);
-            if (client) {
-                setClientId(client.id);
-            } else {
-                setClientId(null);
-                console.warn('Клиент с таким именем не найден');
-            }
-        } catch (error) {
-            console.error('Ошибка при загрузке клиентов:', error);
-        }
-    };
-
     const fetchData = async () => {
         try {
-            const response = await fetchWithRetry('/session_history', 'GET');
-            setWriteOff(response.reverse());
+            if (!clientId) {
+                const response = await fetchWithRetry('/session_history', 'GET');
+                setWriteOff(response.reverse());
+            } else {
+                const response = await fetchWithRetry(`/session_history/customGet?clientId=${clientId}`, 'GET');
+                setWriteOff(response.reverse());
+            }
         } catch (error) {
             console.error('Произошла ошибка при получении списаний');
         }
@@ -62,6 +55,11 @@ const WriteOffTable = ({ filters }) => {
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setSelectedReport(null);
+    };
+
+    const handleOpenClientCard = (id) => {
+        findSelectedClient(id);
+        setOpenCardDialog(true);
     };
 
     return (
@@ -87,7 +85,31 @@ const WriteOffTable = ({ filters }) => {
                                                 <span>{event.date}</span>
                                             </Tooltip>
                                         </TableCell>
-                                        <TableCell>{event.name}</TableCell>
+                                        <TableCell>
+                                            {typeof findSelectedClient === 'function' ? (
+                                                <Button
+                                                    variant="text"
+                                                    disableRipple
+                                                    disableElevation
+                                                    sx={{
+                                                        padding: 0,
+                                                        minWidth: 0,
+                                                        textTransform: 'none',
+                                                        fontWeight: 'normal',
+                                                        fontSize: 'inherit',
+                                                        color: 'inherit',
+                                                        '&:hover': {
+                                                            backgroundColor: 'transparent',
+                                                            textDecoration: 'underline', // если хочешь эффект наведения как у ссылки
+                                                        },
+                                                    }}
+                                                    onClick={() => handleOpenClientCard(event.clientId)}
+                                                >{event.name}
+                                                </Button>
+                                            ) : (
+                                                event.name
+                                            )}
+                                        </TableCell>
                                         <TableCell>{event.action}</TableCell>
                                         <TableCell>
                                             <Button

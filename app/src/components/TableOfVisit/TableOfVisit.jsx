@@ -28,8 +28,21 @@ const getMonthDays = (year, month) => {
     return days;
 };
 
-const formatDate = (date) => date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+// Форматируем дату в 'YYYY-MM-DD'
+const formatDate = (date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+// Заголовок с месяцем и годом на русском
 const formatHeader = (year, month) => new Date(year, month).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+
+// Добавляем часы к дате
+function addHours(date, hours) {
+    return new Date(date.getTime() + hours * 60 * 60 * 1000);
+}
 
 const TableOfVisit = ({ client, addToast }) => {
     const today = new Date();
@@ -40,57 +53,59 @@ const TableOfVisit = ({ client, addToast }) => {
 
     const days = getMonthDays(year, month);
 
+    // Парсим дату с учётом разных форматов и таймзон
+    const parseDate = (rawDate, isTrainingTime) => {
+        if (!rawDate) return null;
+
+        const dateObj = new Date(rawDate);
+
+        // Если дата из поля `date` (в UTC), то добавляем 3 часа
+        if (!isTrainingTime) {
+            return addHours(dateObj, 3);
+        }
+        // trainingTime уже с +3, оставляем как есть
+        return dateObj;
+    };
+
     const fetchData = async () => {
         try {
             const response = await fetchWithRetry(`/session_history/customGet?clientId=${client.id}`, 'GET');
-            const parsed = {};
+            const groupedByDate = {};
 
             response.forEach(item => {
                 const report = item.report ? JSON.parse(item.report) : {};
 
-                // Правильная дата: trainingTime > date
-                const rawDate = item.trainingTime || item.date;
-                if (!rawDate) return;
+                const isTrainingTimePresent = !!item.trainingTime;
+                const rawDate = isTrainingTimePresent ? item.trainingTime : item.date;
+                const dateObj = parseDate(rawDate, isTrainingTimePresent);
 
-                const date = new Date(rawDate).toISOString().split('T')[0]; // "2025-06-09"
+                if (!dateObj) return;
 
-                const isMissed = report?.action === 'writeoff';
-                const status = isMissed ? 'missed' : 'completed';
-                const rating = report?.rating || 0;
+                const dateStr = formatDate(dateObj);
 
-                const info = `Тип: ${status === 'missed' ? 'Списана' : 'Проведена'}
-Оценка: ${report?.rating || '-'}
-Интенсивность: ${report?.intensity || '-'}
-Комментарий: ${report?.writeoffComment || report?.comment || '-'}`;
+                const status = report.action === "Перенесенная тренировка" ||
+                    item.action === "Перенесенная тренировка" ||
+                    report.type === "missed"
+                    ? 'missed'
+                    : 'completed';
 
-                // если на эту дату уже есть запись — сравним
-                const existing = parsed[date];
-                if (!existing) {
-                    parsed[date] = { status, info, rating };
-                } else {
-                    const existingPriority = (existing.status === 'completed' ? 1 : 0) * 10 + (existing.rating || 0);
-                    const currentPriority = (status === 'completed' ? 1 : 0) * 10 + rating;
-                    if (currentPriority > existingPriority) {
-                        parsed[date] = { status, info, rating };
-                    }
-                }
+                const info = `Тип: ${status === 'missed' ? 'Перенесена' : 'Проведена'}
+Оценка: ${report.rating || '-'}
+Интенсивность: ${report.intensity || '-'}
+Комментарий: ${report.writeoffComment || report.comment || '-'}
+Причина: ${report.reason || '-'}`;
+
+                if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
+                groupedByDate[dateStr].push({ status, info, action: item.action || report.action || '' });
             });
 
-            // Очищаем от рейтинга перед отображением
-            const cleaned = {};
-            Object.entries(parsed).forEach(([date, { status, info }]) => {
-                cleaned[date] = { status, info };
-            });
 
-            setVisitData(cleaned);
+            setVisitData(groupedByDate);
         } catch (err) {
             console.error('Ошибка при получении посещений:', err);
             addToast('errorToast', 'Ошибка при получении посещений');
         }
     };
-
-
-
 
     useEffect(() => {
         fetchData();
@@ -135,20 +150,36 @@ const TableOfVisit = ({ client, addToast }) => {
                     if (!day) return <Box key={idx} />;
 
                     const dateStr = formatDate(day);
-                    const visit = visitData[dateStr];
+                    const visits = visitData[dateStr] || [];
 
-                    const bgColor = visit
-                        ? visit.status === 'completed'
-                            ? 'lightgreen'
-                            : '#ffb3b3'
-                        : '#f5f5f5';
+                    // Массив actions всех тренировок за день
+                    const actions = visits.map(v => v.action);
+
+                    // Проверяем условия
+                    let bgColor = '#f5f5f5'; // по умолчанию
+
+                    if (actions.length > 0) {
+                        const allWriteOff = actions.every(a => a === 'Списание тренировки');
+                        const allMissed = actions.every(a => a === 'Перенесенная тренировка');
+
+                        if (allWriteOff) {
+                            bgColor = 'lightgreen';  // зеленый
+                        } else if (allMissed) {
+                            bgColor = '#ffb3b3';     // красный
+                        } else {
+                            bgColor = 'yellow';      // желтый, если есть смешанные
+                        }
+                    }
+
+
+                    const tooltipText = visits.map((v, i) => `#${i + 1}\n${v.info}`).join('\n\n');
 
                     return (
-                        <Tooltip key={dateStr} title={visit?.info || ''} arrow disableInteractive>
+                        <Tooltip key={dateStr} title={tooltipText} arrow disableInteractive>
                             <Box
-                                onClick={() => visit && setSelectedDate({ date: dateStr, ...visit })}
+                                onClick={() => setSelectedDate({ date: dateStr, visits })}
                                 sx={{
-                                    cursor: visit ? 'pointer' : 'default',
+                                    cursor: visits.length ? 'pointer' : 'default',
                                     textAlign: 'center',
                                     p: 1,
                                     borderRadius: 2,
@@ -157,6 +188,11 @@ const TableOfVisit = ({ client, addToast }) => {
                                 }}
                             >
                                 <Typography variant="body2">{day.getDate()}</Typography>
+                                {visits.length > 1 && (
+                                    <Typography variant="caption" color="text.secondary">
+                                        {visits.length}×
+                                    </Typography>
+                                )}
                             </Box>
                         </Tooltip>
                     );
@@ -177,7 +213,12 @@ const TableOfVisit = ({ client, addToast }) => {
                     }}
                 >
                     <Typography variant="h6" gutterBottom>{selectedDate?.date}</Typography>
-                    <Typography>{selectedDate?.info}</Typography>
+                    {selectedDate?.visits?.map((v, idx) => (
+                        <Box key={idx} mb={2}>
+                            <Typography variant="subtitle2">Тренировка #{idx + 1}</Typography>
+                            <Typography variant="body2" whiteSpace="pre-line">{v.info}</Typography>
+                        </Box>
+                    ))}
                 </Paper>
             </Modal>
         </Box>

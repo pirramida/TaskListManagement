@@ -54,18 +54,23 @@ import PaymentsTable from '../../components/PaymentsTable';
 import AddPaymentDialog from '../../components/AddPaymentDialog';
 import PaymentDetailsDialog from '../../components/DialogOpenDetails';
 import WriteOffTable from '../../components/WriteOffTableT';
+import CardClient from '../../components/CardClient';
+import AdditionalPayDialog from '../../components/AdditionalPayDialog';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const PayPage = ({ user}) => {
+const PayPage = ({ user }) => {
   // Состояние для диалога добавления оплаты
   const [openDialog, setOpenDialog] = useState(false);
   const [client, setClient] = useState(null);
   const [clients, setClients] = useState();
   const [openDetils, setOpenDetils] = useState(false);
   const [filteredPayments, setFilteredPayments] = useState();
+
+  // Состояние ля диалога добавлния дополнительной оплаты
+  const [openPayDialog, setOpenPayDialog] = useState(false);
 
   // История платежей
   const [payment, setPayment] = useState();
@@ -80,6 +85,10 @@ const PayPage = ({ user}) => {
   const [filters, setFilters] = useState({});
   // Переключатель таблиц
   const [showPayments, setShowPayments] = useState(false);
+
+  const [openCardDialog, setOpenCardDialog] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   useEffect(() => {
     try {
@@ -96,6 +105,12 @@ const PayPage = ({ user}) => {
   useEffect(() => {
     setFilteredPayments(payments);
   }, [payments]);
+
+  const findSelectedClient = (id) => {
+    const selectedClient = clients.find((client) => client.id === id);
+    setSelectedClient(selectedClient);
+    setIsDialogOpen(true);
+  }
 
   const fetchDataPayList = async () => {
     try {
@@ -118,6 +133,11 @@ const PayPage = ({ user}) => {
     console.log(client);
     setPayment(client);
     setOpenDetils(true);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({}); // Сбрасываем фильтры в основном состоянии
+    setFilteredPayments(payments); // Показываем все платежи
   };
 
   const handleSave = () => {
@@ -233,6 +253,7 @@ const PayPage = ({ user}) => {
               handleApplyFilters(filters);
               setOpenFilter(false);
             }}
+            onResetFilters={handleResetFilters}
           />
           <Button
             variant="outlined"
@@ -302,7 +323,29 @@ const PayPage = ({ user}) => {
         }}
       >
         {/* Левая кнопка-заглушка или пустота */}
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: 1 }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setOpenPayDialog(true)}
+            sx={{
+              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+              borderRadius: 3,
+              px: 2,
+              py: 1.5,
+              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
+                background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+              },
+            }}
+          >
+            {'Добавить стороннюю оплату!'}
+          </Button>
+
+        </Box>
 
         {/* Кнопка по центру */}
         <Button
@@ -360,10 +403,26 @@ const PayPage = ({ user}) => {
           payments={payments}
           filteredPayments={filteredPayments}
           handleOpen={handleOpen}
+          setOpenCardDialog={setOpenCardDialog}
+          findSelectedClient={findSelectedClient}
         />
       ) : (
         <WriteOffTable
           filters={filters}
+          filtersClientsetOpenCardDialog={filters.client}
+          setOpenCardDialog={setOpenCardDialog}
+          findSelectedClient={findSelectedClient}
+        />
+      )}
+
+      {/* Открытие карты клиента */}
+      {openCardDialog && (
+        <CardClient
+          client={selectedClient}
+          open={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          fetchWithRetry={fetchWithRetry}
+          addToast={addToast}
         />
       )}
 
@@ -389,80 +448,26 @@ const PayPage = ({ user}) => {
         getFieldIcon={getFieldIcon}
         renderStatusChip={renderStatusChip}
       />
+
+      <AdditionalPayDialog
+        open={openPayDialog}
+        onClose={() => setOpenPayDialog(false)}
+        clients={clients}
+        onSubmit={(data) => {
+          console.log("Оплата:", data);
+          // отправить на сервер или в стейт
+        }}
+      />
     </Box>
 
   );
 
 };
 
-const Field = ({ label, name, value, editing, onChange, icon, suffix, customDisplay, ...props }) => {
-  return (
-    <Box sx={{
-      background: 'white',
-      borderRadius: '8px',
-      p: 2,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-      transition: 'all 0.2s ease',
-      '&:hover': {
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-      }
-    }}>
-      <Box display="flex" alignItems="center" mb={1}>
-        {icon && (
-          <Avatar sx={{
-            width: 24,
-            height: 24,
-            mr: 1,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText'
-          }}>
-            {icon}
-          </Avatar>
-        )}
-        <Typography variant="subtitle2" color="textSecondary">
-          {label}
-        </Typography>
-      </Box>
-
-      {editing ? (
-        <TextField
-          name={name}
-          value={value || ''}
-          onChange={onChange}
-          fullWidth
-          variant="outlined"
-          size="small"
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '6px'
-            }
-          }}
-          InputProps={{
-            endAdornment: suffix && (
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 1 }}>
-                {suffix}
-              </Typography>
-            )
-          }}
-          {...props}
-        />
-      ) : (
-        customDisplay || (
-          <Typography variant="body1" sx={{
-            fontWeight: 500,
-            color: value ? 'text.primary' : 'text.disabled'
-          }}>
-            {value || '—'} {suffix}
-          </Typography>
-        )
-      )}
-    </Box>
-  );
-};
 export default PayPage;
 
 
-const FilterModal = ({ clients, payments, onApplyFilters }) => {
+const FilterModal = ({ clients, payments, onApplyFilters, onResetFilters }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -471,7 +476,7 @@ const FilterModal = ({ clients, payments, onApplyFilters }) => {
     amountType: '',
     customAmount: '',
     statuses: [],
-    types: []
+    types: [],
   });
 
   // Уникальные значения для фильтров
@@ -520,8 +525,9 @@ const FilterModal = ({ clients, payments, onApplyFilters }) => {
       amountType: '',
       customAmount: '',
       statuses: [],
-      types: []
+      types: [],
     });
+    onResetFilters();
     onApplyFilters({});
   };
 

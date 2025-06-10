@@ -52,7 +52,9 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
   });
   const [payments, setPayments] = useState([]);
   const [showPayments, setShowPayments] = useState(false);
-
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?.id;
+  
   useEffect(() => {
     setEditedClient(client);
     setIsEditing(false);
@@ -83,7 +85,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
 
   const fetchDataQuantity = async () => {
     try {
-      const response = await fetchWithRetry('/payment_history/quantity', 'Patch', client);
+      const response = await fetchWithRetry('/payment_history/quantity', 'Patch', {client, userId});
       if (response) {
         const completed = response[0].quantity - response[0].quantityLeft || 0;
         const remaining = response[0].quantity || 0;
@@ -791,11 +793,11 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <Box sx={{ mr: 2 }}>
                     <Typography variant="body2" color="text.secondary">
-                      <ClientFoto clientId={client.id}/>
+                      <ClientFoto clientId={client.id} />
                     </Typography>
                   </Box>
                   <Box>
-                    <TableParamWoman clientId={client.id}/>
+                    <TableParamWoman clientId={client.id} />
                   </Box>
                 </Box>
               )}
@@ -973,7 +975,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                     />
                   ) : (
                     <WriteOffTable
-                      filters={editedClient.name}
+                      filters={editedClient}
                     />
                   )}
                 </Box>
