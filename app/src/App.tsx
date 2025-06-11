@@ -11,6 +11,8 @@ import AllClientsPage from "./Pages/AllClientsPage/AllClientsPage";
 import PayPage from "./Pages/PayPage/PayPage";
 import { ToastContainer } from 'react-toastify';
 import LoginPage from "./Pages/LoginPage/LoginPage";
+import GenerateProgramm from './Pages/GenerateProgrammPage/GenerateProgrammPage';
+
 
 const App: React.FC = () => {
   const [user, setUser] = useState(() => {
@@ -23,7 +25,7 @@ const App: React.FC = () => {
       {user && <HeaderPages user={user} />}
 
       <Routes>
-        <Route path="/" element={<LoginPage setUser={setUser}/>} />
+        <Route path="/" element={user ? <MainPage user={user} /> : <LoginPage setUser={setUser} />} />
         <Route path="/addClient" element={user ? <AddClientPage user={user} /> : <Navigate to="/" />} />
         <Route path="/MainPage" element={user ? <MainPage user={user} /> : <Navigate to="/" />} />
         <Route path="/trainingCalendar" element={user ? <TrainingCalendar user={user} /> : <Navigate to="/" />} />
@@ -31,6 +33,7 @@ const App: React.FC = () => {
         <Route path="/calories" element={user ? <CalorieСheckPage user={user} /> : <Navigate to="/" />} />
         <Route path="/allClients" element={user ? <AllClientsPage user={user} /> : <Navigate to="/" />} />
         <Route path="/payPage" element={user ? <PayPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/generateProgramm" element={user ? <GenerateProgramm user={user} /> : <Navigate to="/" />} />
       </Routes>
 
       <ToastContainer />

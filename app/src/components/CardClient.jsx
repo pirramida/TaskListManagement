@@ -85,7 +85,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
 
   const fetchDataQuantity = async () => {
     try {
-      const response = await fetchWithRetry('/payment_history/quantity', 'Patch', {client, userId});
+      const response = await fetchWithRetry('/payment_history/quantity', 'Patch', client);
       if (response) {
         const completed = response[0].quantity - response[0].quantityLeft || 0;
         const remaining = response[0].quantity || 0;

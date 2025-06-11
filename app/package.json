@@ -28,6 +28,7 @@
     "googleapis": "^148.0.0",
     "moment": "^2.30.1",
     "react": "^19.1.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-big-calendar": "^1.18.0",
     "react-date-picker": "^11.0.0",
     "react-dom": "^19.1.0",

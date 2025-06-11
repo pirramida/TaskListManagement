@@ -146,6 +146,9 @@ const HeaderPages = ({ user }) => {
           <MainButton component={Link} to="/payPage">
             Оплата
           </MainButton>
+          <MainButton component={Link} to="/generateProgramm">
+            Генератор программ
+          </MainButton>
         </Box>
 
         {/* Кнопки действий и меню */}
