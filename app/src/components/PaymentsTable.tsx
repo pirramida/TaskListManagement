@@ -19,20 +19,28 @@ type Payment = {
   amount: number;
   type: string;
   status: string;
+  clientId: number;
 };
 
 type PaymentsTableProps = {
   payments: Payment[];
   filteredPayments?: Payment[];
   handleOpen: (payment: Payment) => void;
+  setOpenCardDialog: any;
+  findSelectedClient: any;
 };
 
-const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, filteredPayments, handleOpen }) => {
+const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, filteredPayments, handleOpen, setOpenCardDialog, findSelectedClient }) => {
   const rows = filteredPayments ?? payments;
 
+  const handleOpenClientCard = (id: any) => {
+    findSelectedClient(id);
+    setOpenCardDialog(true);
+  };
+
   return (
-    <Paper sx={{ 
-      p: 2, 
+    <Paper sx={{
+      p: 2,
       borderRadius: 3,
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
     }}>
@@ -52,7 +60,32 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, filteredPayment
             {[...rows].reverse().map((payment, index) => (
               <TableRow key={index} hover>
                 <TableCell>{new Date(payment?.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}</TableCell>
-                <TableCell>{payment?.client}</TableCell>
+                <TableCell>
+                  {typeof findSelectedClient === 'function' ? (
+                    <Button
+                      variant="text"
+                      disableRipple
+                      disableElevation
+                      sx={{
+                        padding: 0,
+                        minWidth: 0,
+                        textTransform: 'none',
+                        fontWeight: 'normal',
+                        fontSize: 'inherit',
+                        color: 'inherit',
+                        '&:hover': {
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline', // если хочешь эффект наведения как у ссылки
+                        },
+                      }}
+                      onClick={() => handleOpenClientCard(payment.clientId)}
+                    >
+                      {payment?.client}
+                    </Button>
+                  ) : (
+                    payment?.client
+                  )}
+                </TableCell>
                 <TableCell>
                   <Box
                     sx={{
@@ -74,14 +107,14 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, filteredPayment
                         payment?.type === 'Разовая'
                           ? '#e3f2fd'
                           : payment?.type === '10 тренировок'
-                          ? '#e8f5e9'
-                          : '#fff8e1',
+                            ? '#e8f5e9'
+                            : '#fff8e1',
                       color:
                         payment?.type === 'Разовая'
                           ? '#1565c0'
                           : payment?.type === '10 тренировок'
-                          ? '#2e7d32'
-                          : '#ff8f00'
+                            ? '#2e7d32'
+                            : '#ff8f00'
                     }}
                   />
                 </TableCell>

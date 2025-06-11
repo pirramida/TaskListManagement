@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
   Box,
   Avatar,
   IconButton,
@@ -60,7 +60,7 @@ const ActionButton = styled(Button)({
   },
 });
 
-const HeaderPages = () => {
+const HeaderPages = ({ user }) => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
@@ -74,15 +74,14 @@ const HeaderPages = () => {
 
   const handleMenuClose = async () => {
     const response = await fetchWithRetry('/users/refresh-events', 'GET');
-    console.log('responseresponseresponseresponse', response);
     setMobileMenuAnchor(null);
     setMoreMenuAnchor(null);
   };
 
   return (
     <CoolAppBar position="sticky">
-      <Toolbar sx={{ 
-        display: 'flex', 
+      <Toolbar sx={{
+        display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         height: '80px',
@@ -104,12 +103,12 @@ const HeaderPages = () => {
           >
             <FitnessCenterIcon />
           </Avatar>
-          
-          <Typography 
-            variant="h5" 
-            component="div" 
-            sx={{ 
-              color: colors.light, 
+
+          <Typography
+            variant="h5"
+            component="div"
+            sx={{
+              color: colors.light,
               fontWeight: 800,
               letterSpacing: '1px',
               fontFamily: '"Bangers", cursive',
@@ -121,31 +120,34 @@ const HeaderPages = () => {
         </Box>
 
         {/* Основные кнопки (видно на десктопе) */}
-        <Box sx={{ 
-          display: { xs: 'none', md: 'flex' }, 
+        <Box sx={{
+          display: { xs: 'none', md: 'flex' },
           alignItems: 'center'
         }}>
-          <MainButton component={Link} to="/">
+          <MainButton component={Link} to="/MainPage">
             Главная
           </MainButton>
           <MainButton component={Link} to="/allClients">
-            БандЮли 
-            <Chip 
-              label="24" 
-              size="small" 
-              sx={{ 
-                ml: 1, 
-                color: colors.light, 
+            БандЮли
+            <Chip
+              label="24"
+              size="small"
+              sx={{
+                ml: 1,
+                color: colors.light,
                 bgcolor: 'rgba(255,255,255,0.2)',
                 fontSize: '0.75rem'
-              }} 
+              }}
             />
           </MainButton>
           <MainButton component={Link} to="/trainingCalendar">
-            Календарь
+            Настройки
           </MainButton>
           <MainButton component={Link} to="/payPage">
             Оплата
+          </MainButton>
+          <MainButton component={Link} to="/generateProgramm">
+            Генератор программ
           </MainButton>
         </Box>
 
@@ -154,26 +156,26 @@ const HeaderPages = () => {
           <ActionButton
             component={Link}
             to="/addClient"
-            sx={{ 
+            sx={{
               display: { xs: 'none', sm: 'flex' },
               mr: 2
             }}
           >
             + Новый
           </ActionButton>
-          
+
           {/* Кнопка дополнительного меню */}
           <IconButton
             color="inherit"
             onClick={handleMoreMenuOpen}
-            sx={{ 
+            sx={{
               display: { xs: 'none', md: 'flex' },
               ml: 1
             }}
           >
             <MoreVertIcon />
           </IconButton>
-          
+
           {/* Кнопка мобильного меню */}
           <IconButton
             color="inherit"
@@ -183,6 +185,25 @@ const HeaderPages = () => {
           >
             <MenuIcon />
           </IconButton>
+          <ActionButton
+            onClick={() => {
+              localStorage.removeItem('user');
+              localStorage.removeItem('refresh_token');
+
+              window.location.href = '/';
+            }}
+            sx={{
+              display: { xs: 'none', sm: 'flex' },
+              ml: 2,
+              backgroundColor: '#ef5350',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#d32f2f'
+              }
+            }}
+          >
+            Выйти
+          </ActionButton>
         </Box>
 
         {/* Мобильное меню */}
@@ -200,60 +221,60 @@ const HeaderPages = () => {
             }
           }}
         >
-          <MenuItem 
-            component={Link} 
-            to="/" 
+          <MenuItem
+            component={Link}
+            to="/MainPage"
             onClick={handleMenuClose}
             sx={{ fontWeight: 600 }}
           >
             Главная
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/allClients" 
+          <MenuItem
+            component={Link}
+            to="/allClients"
             onClick={handleMenuClose}
             sx={{ fontWeight: 600 }}
           >
-            БандЮли 
-            <Chip 
-              label="24" 
-              size="small" 
-              sx={{ 
-                ml: 1, 
-                color: colors.light, 
+            БандЮли
+            <Chip
+              label="24"
+              size="small"
+              sx={{
+                ml: 1,
+                color: colors.light,
                 bgcolor: 'rgba(255,255,255,0.2)'
-              }} 
+              }}
             />
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/trainingCalendar" 
+          <MenuItem
+            component={Link}
+            to="/trainingCalendar"
             onClick={handleMenuClose}
             sx={{ fontWeight: 600 }}
           >
             График тренировок
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/calculators" 
+          <MenuItem
+            component={Link}
+            to="/calculators"
             onClick={handleMenuClose}
             sx={{ fontWeight: 600 }}
           >
             Калькуляторы
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/calories" 
+          <MenuItem
+            component={Link}
+            to="/calories"
             onClick={handleMenuClose}
             sx={{ fontWeight: 600 }}
           >
             Калории
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/addClient" 
+          <MenuItem
+            component={Link}
+            to="/addClient"
             onClick={handleMenuClose}
-            sx={{ 
+            sx={{
               fontWeight: 700,
               color: colors.dark,
               background: colors.accent,
@@ -283,23 +304,23 @@ const HeaderPages = () => {
             }
           }}
         >
-          <MenuItem 
-            component={Link} 
-            to="/calculators" 
+          <MenuItem
+            component={Link}
+            to="/calculators"
             onClick={handleMenuClose}
           >
             Калькуляторы
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/calories" 
+          <MenuItem
+            component={Link}
+            to="/calories"
             onClick={handleMenuClose}
           >
             Калории
           </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/settings" 
+          <MenuItem
+            component={Link}
+            to="/settings"
             onClick={handleMenuClose}
           >
             Настройки

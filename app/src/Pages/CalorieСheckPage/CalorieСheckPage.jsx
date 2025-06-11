@@ -1,11 +1,11 @@
 import React from "react";
 import FoodRecognition from "../../components/FoodRecognition";
-const CalorieСheckPage = () => {
+const CalorieСheckPage = ({ user }) => {
 
     return (
         <>
-        Calorie check page
-        <FoodRecognition />
+            Calorie check page
+            <FoodRecognition />
         </>
     );
 };

@@ -1,0 +1,158 @@
+.login-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* ========== Левая панель ========== */
+.left-panel {
+    width: 50%;
+    background: linear-gradient(135deg, #6a1b9a 0%, #1a237e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    padding: 4rem;
+}
+
+.circle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.top-right {
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+}
+
+.bottom-left {
+    bottom: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+}
+
+.left-content {
+    z-index: 1;
+    text-align: center;
+    max-width: 500px;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.icon-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.quote {
+    font-style: italic;
+    opacity: 0.8;
+    font-size: 1.1rem;
+}
+
+/* ========== Правая панель ========== */
+.right-panel {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f3f3;
+}
+
+.form-paper {
+    padding: 3rem;
+    border-radius: 1rem;
+    max-width: 33vw;
+    min-width: 350px;
+
+}
+
+.toggle-buttons {
+    margin-bottom: 1.5rem;
+}
+
+.form-title {
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.submit-button {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    font-weight: bold;
+    background-color: #6a1b9a;
+}
+
+.submit-button:hover {
+    background-color: #4a0072;
+}
+
+/* ========== АДАПТИВ ДЛЯ МОБИЛЬНЫХ ========== */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .left-panel {
+        width: 100%;
+        padding: 2rem 1.5rem;
+        min-height: 300px;
+    }
+
+    .right-panel {
+        width: 100%;
+        padding: 2rem 1.5rem;
+    }
+
+    .form-paper {
+        padding: 2rem;
+        width: 100%;
+        min-width: unset;
+        box-sizing: border-box;
+    }
+
+    .title {
+        font-size: 2.2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+
+    .quote {
+        font-size: 0.95rem;
+    }
+}
