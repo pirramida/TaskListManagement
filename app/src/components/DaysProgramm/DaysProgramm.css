@@ -1,0 +1,157 @@
+/* Корневая обертка страницы */
+.generate-programm-page {
+  padding: 24px;
+  min-height: 100%;
+  background: var(--background-default);
+}
+
+/* Горизонтальный скролл контейнера колонок */
+.columns-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+/* Стили скроллбара для контейнера колонок */
+.columns-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.columns-container::-webkit-scrollbar-thumb {
+  background-color: var(--action-hover);
+  border-radius: 4px;
+}
+
+/* Карточка дня (колонка) */
+
+/* Заголовок колонки */
+.day-column-header {
+  padding: 16px;
+  background: var(--primary-main);
+  color: var(--primary-contrastText);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Контейнер упражнений с вертикальным скроллом */
+.cards-container {
+  flex-grow: 1;
+  padding: 16px;
+  height: 500px;
+  overflow-y: auto;
+  background: var(--background-paper);
+}
+
+/* Скроллбар внутри упражнений */
+.cards-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cards-container::-webkit-scrollbar-thumb {
+  background-color: var(--action-hover);
+  border-radius: 3px;
+}
+
+/* Сообщение "Нет упражнений" */
+.no-exercises {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+/* Нижняя панель с количеством упражнений */
+.cards-footer {
+  padding: 8px;
+  background: var(--background-default);
+  text-align: center;
+  border-top: 1px solid var(--divider);
+}
+
+/* Карточка упражнения */
+.draggable-card {
+  margin-bottom: 6px;
+  border-radius: 12px;
+  padding: 3px 4px;
+  cursor: grab;
+  user-select: none;
+  position: relative;
+  background-color: var(--background-paper);
+  box-shadow: var(--shadow-elevation-1);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+/* Карточка при перетаскивании */
+.draggable-card.dragging {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-elevation-6);
+  opacity: 0.9;
+  background-color: var(--action-hover);
+}
+
+/* Иконка перетаскивания */
+.drag-icon {
+  margin-right: 8px;
+  opacity: 0.6;
+  color: var(--text-secondary);
+  transition: opacity 0.2s ease;
+}
+
+.drag-icon:hover {
+  opacity: 1;
+}
+
+/* Информация об упражнении */
+.card-info {
+  flex-grow: 1;
+}
+
+/* Название упражнения */
+.card-exercise {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* Чипы с повторениями и весом */
+.card-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.chip-reps {
+  background-color: var(--primary-light);
+  color: var(--primary-contrastText);
+}
+
+.chip-weight {
+  background-color: var(--secondary-light);
+  color: var(--secondary-contrastText);
+}
+
+/* Кнопки в заголовке */
+.day-column-header button {
+  color: var(--primary-contrastText);
+}
+
+.day-column {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-paper);
+  box-shadow: var(--shadow-elevation-3);
+  transition: min-width 0.3s ease;
+  min-width: 270px; /* по умолчанию */
+  width: 270px;     /* чтобы ширина фиксирована */
+}
+
+.day-column.empty {
+  min-width: 150px;
+  width: 150;
+}

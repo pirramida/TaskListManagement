@@ -33,7 +33,7 @@ const App: React.FC = () => {
         <Route path="/calories" element={user ? <CalorieСheckPage user={user} /> : <Navigate to="/" />} />
         <Route path="/allClients" element={user ? <AllClientsPage user={user} /> : <Navigate to="/" />} />
         <Route path="/payPage" element={user ? <PayPage user={user} /> : <Navigate to="/" />} />
-        <Route path="/generateProgramm" element={user ? <GenerateProgramm user={user} /> : <Navigate to="/" />} />
+        <Route path="/generateProgramm" element={user ? <GenerateProgramm /> : <Navigate to="/" />} />
       </Routes>
 
       <ToastContainer />
