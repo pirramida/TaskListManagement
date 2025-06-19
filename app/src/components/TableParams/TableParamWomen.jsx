@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Table,
@@ -32,6 +32,21 @@ const parameterListDefault = [
   "Объем плеча",
   "Объем плеча в напряженном состоянии",
 ];
+
+const inputBaseStyles = {
+  padding: "0px !important",
+  paddingTop: "0px !important",
+  paddingLeft: "0px !important",
+  paddingBottom: "0px !important",
+  fontSize: "13px",
+  "& .MuiInputBase-input": {
+    textAlign: "center",
+  },
+};
+
+function StyledInputBase(props) {
+  return <InputBase sx={inputBaseStyles} {...props} />;
+}
 
 const MAX_VISIBLE_CORRECTIONS = 5;
 
@@ -95,8 +110,9 @@ export default function TableParamWoman({ clientId }) {
   };
 
   const handleCellChange = (value, rowIndex, colIndex) => {
-    setData((prev) => {
-      const newData = [...prev.map((row) => [...row])]; // глубокая копия
+    setData(prev => {
+      if (prev[rowIndex][colIndex] === value) return prev;
+      const newData = [...prev.map(row => [...row])];
       newData[rowIndex][colIndex] = value;
       return newData;
     });
@@ -149,8 +165,8 @@ export default function TableParamWoman({ clientId }) {
       corrections:
         data[0].length > 1
           ? Array.from({ length: data[0].length - 1 }, (_, i) =>
-              data.map((row) => row[i + 1])
-            )
+            data.map((row) => row[i + 1])
+          )
           : [],
     };
     setIsEdited(false);
@@ -196,11 +212,6 @@ export default function TableParamWoman({ clientId }) {
     return `${day}.${month}.${year}`;
   };
 
-  const formatDateToInput = (displayDate) => {
-    const [day, month, year] = displayDate.split(".");
-    return `${year}-${month}-${day}`;
-  };
-
   const totalCorrections = data[0].length - 1;
   const maxOffset = Math.max(0, totalCorrections - MAX_VISIBLE_CORRECTIONS);
   const safeOffset = Math.min(correctionOffset, maxOffset);
@@ -210,12 +221,8 @@ export default function TableParamWoman({ clientId }) {
     1 + startCorrection + MAX_VISIBLE_CORRECTIONS
   );
 
-  const CorrectionCell = ({
-    primaryValue,
-    correctionValue,
-    isEditing,
-    onChange,
-  }) => {
+  const CorrectionCell = React.memo(({ primaryValue, correctionValue, isEditing, onChange }) => {
+
     const parseFloatSafe = (val) => {
       const num = parseFloat(val);
       return isNaN(num) ? null : num;
@@ -225,27 +232,17 @@ export default function TableParamWoman({ clientId }) {
     const correction = parseFloatSafe(correctionValue);
     const diff =
       primary !== null && correction !== null ? correction - primary : null;
-    const diffColor = diff > 0 ? "green" : diff < 0 ? "red" : "inherit";
+    const diffColor = diff > 0 ? "red" : diff < 0 ? "green" : "inherit";
 
     return (
       <Box
         sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
         {isEditing ? (
-          <InputBase
+          <StyledInputBase
             value={correctionValue}
             onChange={(e) => onChange(e.target.value)}
-            sx={{
-              width: "100%",
-              "& .MuiInputBase-input": {
-                textAlign: "center",
-                fontSize: "15px",
-                padding: "0px",
-                border: "1px solid",
-                borderColor: "primary.main",
-                borderRadius: "4px",
-              },
-            }}
+            sx={{ width: "100%" }} // если нужно добавить что-то дополнительное
           />
         ) : (
           <Box>
@@ -260,7 +257,7 @@ export default function TableParamWoman({ clientId }) {
         )}
       </Box>
     );
-  };
+  });
 
   return (
     <Box
@@ -371,25 +368,25 @@ export default function TableParamWoman({ clientId }) {
             },
 
             "& .MuiTableHead-root .MuiTableRow-root .MuiTableCell-root:first-of-type":
-              {
-                borderTopLeftRadius: "12px",
-              },
+            {
+              borderTopLeftRadius: "12px",
+            },
             "& .MuiTableCell-root:first-of-type": {
               paddingLeft: "8px !important",
             },
             "& .MuiTableHead-root .MuiTableRow-root .MuiTableCell-root:last-of-type":
-              {
-                borderTopRightRadius: "12px",
-              },
+            {
+              borderTopRightRadius: "12px",
+            },
 
             "& .MuiTableBody-root .MuiTableRow-root:nth-of-type(odd) .MuiTableCell-root":
-              {
-                backgroundColor: "#ffffff",
-              },
+            {
+              backgroundColor: "#ffffff",
+            },
             "& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) .MuiTableCell-root":
-              {
-                backgroundColor: "rgba(232, 206, 241, 0.51)",
-              },
+            {
+              backgroundColor: "rgba(232, 206, 241, 0.51)",
+            },
             "& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root": {
               backgroundColor: "#e0f2fe",
             },
@@ -519,8 +516,8 @@ export default function TableParamWoman({ clientId }) {
 
           <TableBody>
             {parameters.map((param, rowIndex) => (
-              <TableRow key={rowIndex}>
-                <TableCell title={`${param}`}>{param}</TableCell>
+              <TableRow key={`row-${rowIndex}`}>
+                <TableCell key={`label-${rowIndex}`} title={`${param}`}>{param}</TableCell>
 
                 <TableCell>
                   {editedColumn === 0 ? (
@@ -567,19 +564,9 @@ export default function TableParamWoman({ clientId }) {
                         />
                       ) : editedColumn === colIndex ? (
                         // Редактируемая ячейка
-                        <InputBase
-                          sx={{
-                            padding: "0px 0px 0px 0px !important",
-                            paddingTop: "0px !important",
-                            paddingLeft: "0px !important",
-                            paddingBottom: "0px !important",
-                            paddingTop: "0px !important",
-                            fontSize: "15px",
-                          }}
+                        <StyledInputBase
                           value={data[rowIndex][colIndex] || ""}
-                          onChange={(e) =>
-                            handleCellChange(e.target.value, rowIndex, colIndex)
-                          }
+                          onChange={(e) => handleCellChange(e.target.value, rowIndex, colIndex)}
                         />
                       ) : rowIndex === 0 ? (
                         // Обычное отображение значения

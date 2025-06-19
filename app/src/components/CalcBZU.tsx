@@ -112,10 +112,6 @@ const CalcBZU = () => {
         countSubtract2++;
     }
 
-    console.log(`Количество вычитаний 3: ${countSubtract3}`);
-    console.log(`Количество вычитаний 2: ${countSubtract2}`);
-    // console.log(`Остаток: ${currentDifference}`);
-
     setMacros({
       proteins: Number(proteins.toFixed(2)),
       fatsMin: Number(fatsMin.toFixed(2)),

@@ -42,10 +42,6 @@ const PaymentDetailsPage = ({ open, close, client }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  useEffect(() => {
-    console.log(client)
-  }, []);
-
   const handleEdit = () => {
     setIsEditing(true);
   };

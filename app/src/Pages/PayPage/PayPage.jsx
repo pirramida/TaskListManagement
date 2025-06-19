@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   MenuItem,
@@ -90,6 +90,11 @@ const PayPage = ({ user }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
+
+  const [open, setOpen] = useState(false);
+  const memoizedFilteredPayments = useMemo(() => filteredPayments, [filteredPayments]);
+
+
   useEffect(() => {
     try {
       fetchData();
@@ -106,11 +111,11 @@ const PayPage = ({ user }) => {
     setFilteredPayments(payments);
   }, [payments]);
 
-  const findSelectedClient = (id) => {
+  const findSelectedClient = useCallback((id) => {
     const selectedClient = clients.find((client) => client.id === id);
     setSelectedClient(selectedClient);
     setIsDialogOpen(true);
-  }
+  }, [clients]);
 
   const fetchDataPayList = async () => {
     try {
@@ -129,29 +134,27 @@ const PayPage = ({ user }) => {
     setClients(response);
   }
 
-  const handleOpen = (client) => {
-    console.log(client);
+  const handleOpen = useCallback((client) => {
     setPayment(client);
     setOpenDetils(true);
-  };
+  }, []);
 
   const handleResetFilters = () => {
     setFilters({}); // Сбрасываем фильтры в основном состоянии
     setFilteredPayments(payments); // Показываем все платежи
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     setIsEditing(false);
-    // Здесь можно добавить логику сохранения изменений
     console.log('Данные сохранены:', payment);
-  };
+  }, [payment]);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setPayment(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const getFieldIcon = (name) => {
+  const getFieldIcon = useCallback((name) => {
     switch (name) {
       case 'amount': return <PaidIcon fontSize="small" />;
       case 'client': return <PersonIcon fontSize="small" />;
@@ -164,9 +167,9 @@ const PayPage = ({ user }) => {
       case 'status': return <CheckCircleIcon fontSize="small" />;
       default: return null;
     }
-  };
+  }, []);
 
-  const renderStatusChip = (status) => {
+  const renderStatusChip = useCallback((status) => {
     let color = 'default';
     if (status === 'Активен') color = 'success';
     if (status === 'Просрочен') color = 'error';
@@ -181,12 +184,12 @@ const PayPage = ({ user }) => {
         sx={{ borderRadius: '6px', fontWeight: 500 }}
       />
     );
-  };
+  }, []);
 
   // Пример использования:
   // В вашем основном компоненте:
 
-  const handleApplyFilters = (filters) => {
+  const handleApplyFilters = useCallback((filters) => {
     let result = [...payments];
     setFilters(prev => ({ ...prev, ...filters }));
     // Фильтрация по дате
@@ -224,242 +227,285 @@ const PayPage = ({ user }) => {
     }
 
     setFilteredPayments(result);
-  };
+  }, [payments]);
 
   const toggleHistory = () => {
     setShowPayments((prev) => !prev);
   }
+
+  const handleReset = async () => {
+    try {
+      const response = await fetchWithRetry('users/resetStatisticUser', 'PATCH', user);
+      if (response) {
+        addToast('successNewStatistic', 'success', 'Статистика обновилась на новый месяц', 1500)
+      } else {
+        addToast('errorNewStatistic', 'error', 'Произошла ошибка при обновлении статистики', 1500)
+      }
+    } catch (err) {
+      addToast('errorNewStatistic', 'error', 'Произошла ошибка при обновлении статистики', 1500)
+    }
+  };
   // В рендере:
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
-      {/* Заголовок и кнопки */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 3
-      }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Финансы ЮлькоФит
-        </Typography>
-        <Box>
-          <FilterModal
-            open={openFilter}
-            onClose={() => setOpenFilter(false)}
-            payments={payments}
-            clients={clients}
-            onApplyFilters={(filters) => {
-              handleApplyFilters(filters);
-              setOpenFilter(false);
-            }}
-            onResetFilters={handleResetFilters}
-          />
-          <Button
-            variant="outlined"
-            startIcon={<Print />}
-            sx={{ mr: 2 }}
-          >
-            Печать
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<FileDownload />}
-          >
-            Экспорт
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Статистика */}
-      <Box sx={{
-        display: 'flex',
-        gap: 3,
-        mb: 4,
-        flexWrap: 'wrap'
-      }}>
-        <Paper sx={{
-          p: 3,
-          flexGrow: 1,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
-          color: 'white'
-        }}>
-          <Typography variant="h6">Доход</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.cashInMonth} ₽</Typography>
-          <Typography variant="body2">за текущий месяц</Typography>
-        </Paper>
-        <Paper sx={{
-          p: 3,
-          flexGrow: 1,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-          color: 'white'
-        }}>
-          <Typography variant="h6">Проведено тренировок</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.sessionsInMonth}</Typography>
-          <Typography variant="body2">за текущий месяц</Typography>
-        </Paper>
-        <Paper sx={{
-          p: 3,
-          flexGrow: 1,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #f46b45 0%, #eea849 100%)',
-          color: 'white'
-        }}>
-          <Typography variant="h6">Средний чек</Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.averageReceipt} ₽</Typography>
-          <Typography variant="body2">за текущий месяц</Typography>
-        </Paper>
-      </Box>
-
-      {/* Кнопка добавления и таблица */}
-      <Box
-        sx={{
-          mb: 3,
+    <>
+      <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
+        {/* Заголовок и кнопки */}
+        <Box sx={{
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
-        }}
-      >
-        {/* Левая кнопка-заглушка или пустота */}
-        <Box sx={{ flex: 1 }}>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setOpenPayDialog(true)}
-            sx={{
-              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
-              borderRadius: 3,
-              px: 2,
-              py: 1.5,
-              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
-                background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
-              },
-            }}
-          >
-            {'Добавить стороннюю оплату!'}
-          </Button>
-
+          alignItems: 'center',
+          mb: 3
+        }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Финансы ЮлькоФит
+          </Typography>
+          <Box>
+            <Button
+              variant="outlined"
+              sx={{ mr: 2 }}
+              onClick={() => { setOpen(true) }}
+            >
+              Обновить статистику на новый месяц
+            </Button>
+            <FilterModal
+              open={openFilter}
+              onClose={() => setOpenFilter(false)}
+              payments={payments}
+              clients={clients}
+              onApplyFilters={(filters) => {
+                handleApplyFilters(filters);
+                setOpenFilter(false);
+              }}
+              onResetFilters={handleResetFilters}
+            />
+            <Button
+              variant="outlined"
+              startIcon={<Print />}
+              sx={{ mr: 2 }}
+            >
+              Печать
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<FileDownload />}
+            >
+              Экспорт
+            </Button>
+          </Box>
         </Box>
 
-        {/* Кнопка по центру */}
-        <Button
-          variant="outlined"
-          onClick={toggleHistory}
-          startIcon={<History />}
-          sx={{
-            color: '#6a11cb',
-            borderColor: '#6a11cb',
+        {/* Статистика */}
+        <Box sx={{
+          display: 'flex',
+          gap: 3,
+          mb: 4,
+          flexWrap: 'wrap'
+        }}>
+          <Paper sx={{
+            p: 3,
+            flexGrow: 1,
             borderRadius: 3,
-            px: 4,
-            py: 1.2,
-            fontWeight: 600,
-            textTransform: 'none',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
-              color: '#fff',
-              borderColor: 'transparent',
-              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
-            },
+            background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+            color: 'white'
+          }}>
+            <Typography variant="h6">Доход</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.cashInMonth} ₽</Typography>
+            <Typography variant="body2">за текущий месяц</Typography>
+          </Paper>
+          <Paper sx={{
+            p: 3,
+            flexGrow: 1,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+            color: 'white'
+          }}>
+            <Typography variant="h6">Проведено тренировок</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.sessionsInMonth}</Typography>
+            <Typography variant="body2">за текущий месяц</Typography>
+          </Paper>
+          <Paper sx={{
+            p: 3,
+            flexGrow: 1,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f46b45 0%, #eea849 100%)',
+            color: 'white'
+          }}>
+            <Typography variant="h6">Средний чек</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>  {isNaN(statistic.averageReceipt) ? 0 : statistic.averageReceipt} ₽</Typography>
+            <Typography variant="body2">за текущий месяц</Typography>
+          </Paper>
+        </Box>
+
+        {/* Кнопка добавления и таблица */}
+        <Box
+          sx={{
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          {showPayments ? 'История списаний' : 'История оплат'}
-        </Button>
+          {/* Левая кнопка-заглушка или пустота */}
+          <Box sx={{ flex: 1 }}>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenPayDialog(true)}
+              sx={{
+                background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                borderRadius: 3,
+                px: 2,
+                py: 1.5,
+                boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
+                  background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+                },
+              }}
+            >
+              {'Добавить стороннюю оплату!'}
+            </Button>
 
-        {/* Кнопка справа */}
-        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          </Box>
+
+          {/* Кнопка по центру */}
           <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setOpenDialog(true)}
+            variant="outlined"
+            onClick={toggleHistory}
+            startIcon={<History />}
             sx={{
-              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+              color: '#6a11cb',
+              borderColor: '#6a11cb',
               borderRadius: 3,
               px: 4,
-              py: 1.5,
-              boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
-              textTransform: 'none',
+              py: 1.2,
               fontWeight: 600,
+              textTransform: 'none',
+              transition: 'all 0.3s ease',
               '&:hover': {
-                boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
-                background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+                background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                color: '#fff',
+                borderColor: 'transparent',
+                boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
               },
             }}
           >
-            Добавить оплату
+            {showPayments ? 'История списаний' : 'История оплат'}
           </Button>
+
+          {/* Кнопка справа */}
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenDialog(true)}
+              sx={{
+                background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                borderRadius: 3,
+                px: 4,
+                py: 1.5,
+                boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
+                  background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+                },
+              }}
+            >
+              Добавить оплату
+            </Button>
+          </Box>
         </Box>
+
+        {/* Таблица вывода оплат */}
+        {!showPayments ? (
+          <PaymentsTable
+            payments={payments}
+            filteredPayments={memoizedFilteredPayments}
+            handleOpen={handleOpen}
+            setOpenCardDialog={setOpenCardDialog}
+            findSelectedClient={findSelectedClient}
+          />
+        ) : (
+          <WriteOffTable
+            filters={filters}
+            filtersClientsetOpenCardDialog={filters.client}
+            setOpenCardDialog={setOpenCardDialog}
+            findSelectedClient={findSelectedClient}
+          />
+        )}
+
+        {/* Открытие карты клиента */}
+        {openCardDialog && (
+          <CardClient
+            client={selectedClient}
+            open={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            fetchWithRetry={fetchWithRetry}
+            addToast={addToast}
+          />
+        )}
+
+        {/* Диалог добавления оплаты */}
+        <AddPaymentDialog
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          clients={clients}
+          fetchDataPayList={() => fetchDataPayList()}
+          setClient={setClient}
+          client={client}
+        />
+
+        {/* Диалог деталей о оплате */}
+        <PaymentDetailsDialog
+          open={openDetils}
+          onClose={() => setOpenDetils(false)}
+          payment={payment}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          handleChange={handleChange}
+          handleSave={handleSave}
+          getFieldIcon={getFieldIcon}
+          renderStatusChip={renderStatusChip}
+        />
+
+        <AdditionalPayDialog
+          open={openPayDialog}
+          onClose={() => setOpenPayDialog(false)}
+          clients={clients}
+          onSubmit={(data) => {
+            console.log("Оплата:", data);
+            // отправить на сервер или в стейт
+          }}
+        />
       </Box>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle style={{ color: "red" }} >Обновление статистики</DialogTitle>
+        <DialogContent>
+          <p style={{ color: "red" }}>Вы уверены, что хотите обновить статистику за месяц?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              handleReset();
+              setOpen(false);
+            }}
+            color="primary"
+            variant="contained"
+          >
+            Обновить
+          </Button>
+          <Button onClick={() => setOpen(false)} >
+            Отменить
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {/* Таблица вывода оплат */}
-      {!showPayments ? (
-        <PaymentsTable
-          payments={payments}
-          filteredPayments={filteredPayments}
-          handleOpen={handleOpen}
-          setOpenCardDialog={setOpenCardDialog}
-          findSelectedClient={findSelectedClient}
-        />
-      ) : (
-        <WriteOffTable
-          filters={filters}
-          filtersClientsetOpenCardDialog={filters.client}
-          setOpenCardDialog={setOpenCardDialog}
-          findSelectedClient={findSelectedClient}
-        />
-      )}
-
-      {/* Открытие карты клиента */}
-      {openCardDialog && (
-        <CardClient
-          client={selectedClient}
-          open={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          fetchWithRetry={fetchWithRetry}
-          addToast={addToast}
-        />
-      )}
-
-      {/* Диалог добавления оплаты */}
-      <AddPaymentDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        clients={clients}
-        fetchDataPayList={() => fetchDataPayList()}
-        setClient={setClient}
-        client={client}
-      />
-
-      {/* Диалог деталей о оплате */}
-      <PaymentDetailsDialog
-        open={openDetils}
-        onClose={() => setOpenDetils(false)}
-        payment={payment}
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
-        handleChange={handleChange}
-        handleSave={handleSave}
-        getFieldIcon={getFieldIcon}
-        renderStatusChip={renderStatusChip}
-      />
-
-      <AdditionalPayDialog
-        open={openPayDialog}
-        onClose={() => setOpenPayDialog(false)}
-        clients={clients}
-        onSubmit={(data) => {
-          console.log("Оплата:", data);
-          // отправить на сервер или в стейт
-        }}
-      />
-    </Box>
-
+    </>
   );
 
 };

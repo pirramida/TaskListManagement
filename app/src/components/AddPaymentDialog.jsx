@@ -113,7 +113,6 @@ export default function AddPaymentDialog({
           fromData: newPayment,
           userId: userId
         });
-        console.log(response);
 
         if (!response.data.success) {
           addToast("error", "error", "Ошибка принятия данных с сервер!", 1000);
@@ -125,7 +124,6 @@ export default function AddPaymentDialog({
       } catch (error) {
         addToast("error", "error", "Ошибка принятия данных на сервер!", 1000);
       }
-      console.log("newPaymentnewPanewPaymentyment", newPayment);
       setPayments([newPayment, ...payments]);
       handleCloseDialog(); // очищает всё после сохранения
     }

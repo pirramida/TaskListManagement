@@ -123,6 +123,7 @@ const ClientFoto = ({ clientId }) => {
 
   const fetchPhotos = async () => {
     try {
+      if (!currentFolder || !currentFolder.id) return;
       const data = await fetchWithRetry(
         `/clients_foto/get-photos?folderId=${currentFolder.id}`
       );
@@ -204,7 +205,6 @@ const ClientFoto = ({ clientId }) => {
         formData
       );
 
-      console.log("Фото загружено:", response);
     } catch (err) {
       console.error("Ошибка при загрузке фото:", err);
     } finally {
@@ -274,7 +274,6 @@ const ClientFoto = ({ clientId }) => {
 
       data.forEach((photo) => {
         const { type, url } = photo;
-        console.log("type, url", type, url);
         if (type in photosByType) {
           photosByType[type] = {
             url: SERVER_URL + url,
@@ -283,7 +282,6 @@ const ClientFoto = ({ clientId }) => {
           };
         }
       });
-      console.log("datadatadata", photosByType);
       // Обновляем currentFolder с фото
       const updatedFolder = { ...folder, photos: photosByType };
       setCurrentFolder(updatedFolder);
@@ -303,7 +301,6 @@ const ClientFoto = ({ clientId }) => {
     const file = e.target.files[0];
     if (!file || !currentFolder) return;
 
-    console.log("currentFoldercurrentFolder", currentFolder);
     const formData = new FormData();
     formData.append("file", file); // загружаемое фото
     formData.append("clientId", clientId); // ID клиента
@@ -324,7 +321,6 @@ const ClientFoto = ({ clientId }) => {
       );
 
       if (!response.success) throw new Error("Ошибка загрузки");
-      console.log(response);
 
       // Обновим путь к сохраненной фотографии на сервере
       const SERVER_URL = "https://localhost:5000"; // или https://yourdomain.com
@@ -332,17 +328,16 @@ const ClientFoto = ({ clientId }) => {
         url: SERVER_URL + response.url,
         date: new Date().toISOString(),
       };
-      console.log("photoDataphotoData", photoData);
       setFolders((prev) =>
         prev.map((f) =>
           f.id === currentFolder.id
             ? {
-                ...f,
-                photos: {
-                  ...f.photos,
-                  [type]: photoData,
-                },
-              }
+              ...f,
+              photos: {
+                ...f.photos,
+                [type]: photoData,
+              },
+            }
             : f
         )
       );
@@ -364,7 +359,6 @@ const ClientFoto = ({ clientId }) => {
     if (!currentFolder && !action) return;
     try {
       const id = photo.id;
-      console.log("photophotophotophoto", photo);
       const response = await fetchWithRetry(
         "/clients_foto/delete-photos",
         "DELETE",
@@ -385,12 +379,12 @@ const ClientFoto = ({ clientId }) => {
       prev.map((f) =>
         f.id === currentFolder.id
           ? {
-              ...f,
-              photos: {
-                ...f.photos,
-                [photo.type]: null,
-              },
-            }
+            ...f,
+            photos: {
+              ...f.photos,
+              [photo.type]: null,
+            },
+          }
           : f
       )
     );
@@ -440,8 +434,6 @@ const ClientFoto = ({ clientId }) => {
   const deleteFolder = async () => {
     if (!currentFolder) return;
     try {
-      console.log("currentFoldercurrentFolder", currentFolder);
-
       await fetchWithRetry("/clients_foto/delete-folder", "DELETE", {
         userId,
         clientId,

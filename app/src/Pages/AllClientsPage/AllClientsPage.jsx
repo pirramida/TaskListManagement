@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { fetchWithRetry } from "../../utils/refreshToken";
 import { addToast, useSnackbarContext } from "../../utils/addToast";
 import CardClient from "../../components/CardClient";
@@ -46,16 +46,22 @@ const AllClientsPage = ({ user }) => {
     const [menuClientId, setMenuClientId] = useState(null);
     const [action, setAction] = useState('');
 
-    const handleMenuOpen = (event, clientId) => {
+    const handleMenuOpen = useCallback((event, clientId) => {
         setAnchorEl(event.currentTarget);
         setMenuClientId(clientId);
-    };
+    }, []);
 
     const handleMenuClose = () => {
         setAnchorEl(null);
         setMenuClientId(null);
-    };
 
+        // 🔽 Уводим фокус на body или любую безопасную зону
+        setTimeout(() => {
+            if (document.activeElement && document.activeElement.tagName === 'LI') {
+                (document.activeElement).blur();
+            }
+        }, 0);
+    };
 
     useEffect(() => {
         fetchData();
@@ -79,10 +85,34 @@ const AllClientsPage = ({ user }) => {
         }
     };
 
-    const filteredData = clients.filter((client) =>
-        client.name.toLowerCase().includes(filterUser.toLowerCase()) &&
-        client.phone.includes(filterPhone)
-    );
+    const filteredData = useMemo(() => {
+        const lowerFilterUser = filterUser.toLowerCase();
+        return clients.filter(client =>
+            client.name.toLowerCase().includes(lowerFilterUser) &&
+            client.phone.includes(filterPhone)
+        );
+    }, [clients, filterUser, filterPhone]);
+
+    const onAddPayment = useCallback(() => {
+        handleMenuClose();
+        setAction('payAdd');
+    }, [handleMenuClose]);
+
+    const onWriteOff = useCallback(() => {
+        handleMenuClose();
+        setAction('writeOff');
+    }, [handleMenuClose]);
+
+    const onDelete = useCallback(() => {
+        handleMenuClose();
+        setAction('delete');
+    }, [handleMenuClose]);
+
+
+    const onClientClick = useCallback((client) => {
+        setSelectedClient(client);
+        setIsDialogOpen(true);
+    }, []);
 
     return (
         <>
@@ -141,7 +171,7 @@ const AllClientsPage = ({ user }) => {
                 {/* Карточки клиентов */}
                 {filteredData.length > 0 ? (
                     <Grid container spacing={3}>
-                        {filteredData.map((client) => (
+                        {filteredData.map((client, index) => (
                             <Grid item xs={12} sm={6} md={4} lg={3} key={client.id}>
 
                                 <Card sx={{
@@ -157,16 +187,16 @@ const AllClientsPage = ({ user }) => {
                                         transform: 'translateY(-8px)',
                                         boxShadow: '0 10px 20px rgba(0,0,0,0.15)'
                                     },
-                                    border: client.sessionQueue === null ? '2px solid #ffa726' : 'none'
+                                    border:
+                                        (!client.sessionQueue || client.sessionQueue === '[]') && '2px solid rgba(248, 149, 0, 0.76)'
+
                                 }}
                                     onContextMenu={(event) => {
                                         event.preventDefault(); // отменяет стандартное контекстное меню
                                         handleMenuOpen(event, client.id); // открывает наше меню
                                     }}
-                                    onClick={() => {
-                                        setSelectedClient(client);
-                                        setIsDialogOpen(true);
-                                    }}>
+                                    onClick={() => onClientClick(client)}
+                                >
                                     {/* Шапка карточки */}
                                     <Box
                                         sx={{
@@ -207,17 +237,14 @@ const AllClientsPage = ({ user }) => {
                                                 opacity: 0.9
                                             }}>
                                                 {client.age} лет {' '}
-                                                {client.sessionQueue === null && (
-
+                                                {(!client.sessionQueue || client.sessionQueue === '[]') && (
                                                     <Chip
                                                         color="warning"
-                                                        icon={<WarningAmber fontSize="small" style={{marginLeft: '5px'}}/>}
+                                                        icon={<WarningAmber fontSize="small" style={{ marginLeft: '5px' }} />}
                                                         variant="outlined"
                                                     />
                                                 )}
                                             </Typography>
-
-
                                         </Box>
                                         <Box sx={{ marginLeft: 'auto' }}>
                                             <IconButton
@@ -246,22 +273,20 @@ const AllClientsPage = ({ user }) => {
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <MenuItem onClick={() => {
-                                                    handleMenuClose();
-                                                    setAction('payAdd');
+                                                    onAddPayment();
                                                     setSelectedClient(client);
                                                 }}>Добавить оплату</MenuItem>
 
                                                 <MenuItem onClick={() => {
-                                                    handleMenuClose();
-                                                    setAction('writeOff');
+                                                    onWriteOff();
                                                     setSelectedClient(client);
                                                 }}>Списать тренировку</MenuItem>
 
                                                 <MenuItem onClick={() => {
-                                                    handleMenuClose();
-                                                    setAction('delete');
+                                                    onDelete();
                                                     setSelectedClient(client);
                                                 }} sx={{ color: 'error.main' }}>Удалить</MenuItem>
+
                                             </Menu>
                                         </Box>
                                     </Box>

@@ -12,7 +12,7 @@ import {
   MoreVert, CheckCircle, AttachMoney, Height, Scale,
   Receipt, Warning, History
 } from '@mui/icons-material';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PaymentsTable from './PaymentsTable';
 import AddPaymentDialog from './AddPaymentDialog';
 import PaymentDetailsDialog from './DialogOpenDetails'
@@ -29,6 +29,7 @@ import WriteOffTable from '../components/WriteOffTableT';
 import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
 import ClientFoto from '../components/ClientFoto/ClientFoto.jsx'
 import TableOfVisit from '../components/TableOfVisit/TableOfVisit.jsx'
+import StatisticGraphs from '../components/StatisticGraphs/StatisticGraphs.jsx'
 
 const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
   const theme = useTheme();
@@ -52,9 +53,10 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
   });
   const [payments, setPayments] = useState([]);
   const [showPayments, setShowPayments] = useState(false);
+  const [sessionsHistoryClient, setSessionsHistoryClient] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
-  
+
   useEffect(() => {
     setEditedClient(client);
     setIsEditing(false);
@@ -64,8 +66,22 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
     if (editedClient?.name) {
       fetchDataPayList();
       fetchDataQuantity();
+      fetchDataTrainingDay();
     }
   }, [editedClient?.name, openDialog, writeOffDialog]);
+
+  useEffect(() => {
+    if (activeTab === 4) {
+      fetchDataTrainingDay();
+    }
+    if (writeOffDialog === false) {
+      fetchDataTrainingDay();
+    }
+  }, [writeOffDialog, activeTab, openDialog]);
+
+  useEffect(() => {
+    setActiveTab(0);
+  }, [editedClient?.name]);
 
   useEffect(() => {
     if (action === 'delete') {
@@ -100,7 +116,6 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
           lastPayment: response[0].dateTo,
           progress
         });
-        console.log(workoutStats);
       }
     } catch (error) {
       const completed = 0;
@@ -229,6 +244,15 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
     }
   };
 
+  const fetchDataTrainingDay = async () => {
+    try {
+      const response = await fetchWithRetry(`/session_history/customGet?clientId=${editedClient.id}`, 'GET');
+      setSessionsHistoryClient(response);
+    } catch (error) {
+      addToast('error', 'error', 'Ошибка получения данных о истории посечений этого клиента!', 1000);
+    }
+  };
+
   // Данные для демонстрации
   const bodyStats = [
     { label: 'Грудь', value: client.chest, unit: 'см', icon: <Straighten /> },
@@ -237,14 +261,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
     { label: '% жира', value: client.bodyFat, unit: '%', icon: <MonitorWeight /> }
   ];
 
-  const paymentHistory = [
-    { date: '2023-06-20', amount: '5000', type: 'Абонемент' },
-    { date: '2023-05-15', amount: '5000', type: 'Абонемент' },
-    { date: '2023-04-10', amount: '3000', type: 'Разовое' }
-  ];
-
   const handleOpen = (client) => {
-    console.log(client);
     setPayment(client);
     setOpenDetils(true);
   };
@@ -983,10 +1000,6 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
 
               {activeTab === 4 && (
                 <Box>
-                  <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Аналитика и эффективность
-                  </Typography>
-
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={8}>
                       <Paper elevation={0} sx={{
@@ -998,7 +1011,24 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                         <Box height={300} display="flex" alignItems="center" justifyContent="center">
                           <Box textAlign="center">
                             <Typography variant="body2" color="text.secondary" mt={1}>
-                              <TableOfVisit client={client} addToast={addToast} setSelectedClient={setSelectedClient} />
+                              <TableOfVisit sessionsHistoryClient={sessionsHistoryClient} client={client} addToast={addToast} setSelectedClient={setSelectedClient} />
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} md={8}>
+                      <Paper elevation={0} sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        height: 400,
+                        background: theme.palette.background.paper
+                      }}>
+                        <Box height={300} display="flex" alignItems="center" justifyContent="center">
+                          <Box textAlign="center">
+                            <Typography variant="body2" color="text.secondary" mt={1}>
+                              <StatisticGraphs />
                             </Typography>
                           </Box>
                         </Box>
@@ -1142,4 +1172,4 @@ function getActivityColor(activity) {
   }
 }
 
-export default CardClient;
+export default React.memo(CardClient);

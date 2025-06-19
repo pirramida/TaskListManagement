@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button,
-    Box, Tooltip, Dialog, DialogTitle, DialogContent, Typography, Stack, DialogActions
+    Box, Tooltip, Dialog, DialogTitle, DialogContent, Typography, DialogActions
 } from '@mui/material';
+import { VariableSizeList as List } from 'react-window';
 import { fetchWithRetry } from '../utils/refreshToken';
+
+const ROW_HEIGHT = 53; // высота строки, подкорректируй если надо
 
 const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCardDialog }) => {
     const [writeOff, setWriteOff] = useState([]);
@@ -11,14 +14,11 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
     const [selectedReport, setSelectedReport] = useState(null);
     const [clientId, setClientId] = useState(null);
 
-    // Загружаем списания при монтировании
     useEffect(() => {
         fetchData();
     }, []);
 
-    // При изменении фильтра — ищем клиента
     useEffect(() => {
-        console.log('filtersfiltersfilters', filtersClient);
         if (filtersClient) {
             setClientId(filtersClient.id);
         } else if (filters) {
@@ -26,7 +26,7 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
         } else {
             setClientId(null);
         }
-    }, [filters.clientName]);
+    }, [filtersClient, filters]);
 
     const fetchData = async () => {
         try {
@@ -42,7 +42,7 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
         }
     };
 
-    const handleOpenDialog = (event) => {
+    const handleOpenDialog = useCallback((event) => {
         try {
             const parsedReport = JSON.parse(event.report);
             setSelectedReport(parsedReport);
@@ -50,16 +50,114 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
         } catch (err) {
             console.error('Ошибка парсинга отчета:', err.message);
         }
-    };
+    }, []);
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setSelectedReport(null);
     };
 
-    const handleOpenClientCard = (id) => {
+    const handleOpenClientCard = useCallback((id) => {
         findSelectedClient(id);
         setOpenCardDialog(true);
+    }, [findSelectedClient, setOpenCardDialog]);
+
+    const filteredWriteOff = useMemo(() => {
+        return [...writeOff]
+            
+            .filter(event => !clientId || event.clientId === clientId);
+    }, [writeOff, clientId]);
+
+    const listRef = useRef(null);
+
+    const Row = ({ index, style }) => {
+        const event = filteredWriteOff[index];
+
+        return (
+            <TableRow
+                hover
+                style={{
+                    ...style,
+                    display: 'flex',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                }}
+                key={index}
+            >
+                <TableCell
+                    component="div"
+                    variant="body"
+                    sx={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                >
+                    <Tooltip title={event.time}>
+                        <span>{event.date}</span>
+                    </Tooltip>
+                </TableCell>
+
+                <TableCell
+                    component="div"
+                    variant="body"
+                    sx={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                >
+                    {typeof findSelectedClient === 'function' ? (
+                        <Button
+                            variant="text"
+                            disableRipple
+                            disableElevation
+                            sx={{
+                                padding: 0,
+                                minWidth: 0,
+                                textTransform: 'none',
+                                fontWeight: 'normal',
+                                fontSize: 'inherit',
+                                color: 'inherit',
+                                '&:hover': {
+                                    backgroundColor: 'transparent',
+                                    textDecoration: 'underline',
+                                },
+                            }}
+                            onClick={() => handleOpenClientCard(event.clientId)}
+                        >
+                            {event.name}
+                        </Button>
+                    ) : (
+                        event.name
+                    )}
+                </TableCell>
+
+                <TableCell
+                    component="div"
+                    variant="body"
+                    sx={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                >
+                    {event.action}
+                </TableCell>
+
+                <TableCell
+                    component="div"
+                    variant="body"
+                    sx={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                >
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        onClick={() => handleOpenDialog(event)}
+                        sx={{
+                            textTransform: 'none',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                backgroundColor: '#f0f7ff',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+                            },
+                        }}
+                    >
+                        Отчет
+                    </Button>
+                </TableCell>
+            </TableRow>
+        );
     };
 
     return (
@@ -68,70 +166,23 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
                 <TableContainer sx={{ maxHeight: 440 }}>
                     <Table stickyHeader>
                         <TableHead>
-                            <TableRow sx={{ background: 'linear-gradient(90deg, #f6f6f6 0%, #f9f9f9 100%)' }}>
-                                <TableCell sx={{ fontWeight: 700 }}>Дата</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>Имя</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>Событие</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>Отчет</TableCell>
+                            <TableRow sx={{ background: 'linear-gradient(90deg, #f6f6f6 0%, #f9f9f9 100%)', display: 'flex', width: '100%' }}>
+                                <TableCell sx={{ fontWeight: 700, flex: 1 }}>Дата</TableCell>
+                                <TableCell sx={{ fontWeight: 700, flex: 1 }}>Имя</TableCell>
+                                <TableCell sx={{ fontWeight: 700, flex: 1 }}>Событие</TableCell>
+                                <TableCell sx={{ fontWeight: 700, flex: 1 }}>Отчет</TableCell>
                             </TableRow>
                         </TableHead>
-                        <TableBody>
-                            {writeOff
-                                .filter(event => !clientId || event.clientId === clientId)
-                                .map((event, index) => (
-                                    <TableRow key={index} hover>
-                                        <TableCell>
-                                            <Tooltip title={event.time}>
-                                                <span>{event.date}</span>
-                                            </Tooltip>
-                                        </TableCell>
-                                        <TableCell>
-                                            {typeof findSelectedClient === 'function' ? (
-                                                <Button
-                                                    variant="text"
-                                                    disableRipple
-                                                    disableElevation
-                                                    sx={{
-                                                        padding: 0,
-                                                        minWidth: 0,
-                                                        textTransform: 'none',
-                                                        fontWeight: 'normal',
-                                                        fontSize: 'inherit',
-                                                        color: 'inherit',
-                                                        '&:hover': {
-                                                            backgroundColor: 'transparent',
-                                                            textDecoration: 'underline', // если хочешь эффект наведения как у ссылки
-                                                        },
-                                                    }}
-                                                    onClick={() => handleOpenClientCard(event.clientId)}
-                                                >{event.name}
-                                                </Button>
-                                            ) : (
-                                                event.name
-                                            )}
-                                        </TableCell>
-                                        <TableCell>{event.action}</TableCell>
-                                        <TableCell>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                color="primary"
-                                                onClick={() => handleOpenDialog(event)}
-                                                sx={{
-                                                    textTransform: 'none',
-                                                    borderRadius: '8px',
-                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                    '&:hover': {
-                                                        backgroundColor: '#f0f7ff',
-                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                                                    }
-                                                }}
-                                            >
-                                                Отчет
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                        <TableBody component="div" sx={{ display: 'block', maxHeight: 440, overflow: 'auto' }}>
+                            <List
+                                height={380}
+                                itemCount={filteredWriteOff.length}
+                                itemSize={() => ROW_HEIGHT}
+                                width="100%"
+                                ref={listRef}
+                            >
+                                {Row}
+                            </List>
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -202,7 +253,7 @@ const WriteOffTable = ({ filters, filtersClient, findSelectedClient, setOpenCard
     );
 };
 
-export default WriteOffTable;
+export default React.memo(WriteOffTable);
 
 const InfoItem = ({ label, value, color, highlight }) => (
     <Box sx={{ display: 'flex' }}>
@@ -215,7 +266,6 @@ const InfoItem = ({ label, value, color, highlight }) => (
     </Box>
 );
 
-
 function formatDateSimple(dateString) {
     if (!dateString) return '—';
 
@@ -224,7 +274,7 @@ function formatDateSimple(dateString) {
     const pad = (n) => n.toString().padStart(2, '0');
 
     const day = pad(date.getDate());
-    const month = pad(date.getMonth() + 1); // Месяцы от 0
+    const month = pad(date.getMonth() + 1);
     const year = date.getFullYear();
     const hours = pad(date.getHours());
     const minutes = pad(date.getMinutes());

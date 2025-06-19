@@ -108,7 +108,6 @@ const MainPage = ({ user }) => {
         time: formatTime(client.start),
         status: null
       }));
-      console.log('completedcompleted', completed);
       setWorkouts(completed);
     } catch (error) {
       console.error('Ошибка при получении событий:', error);
@@ -141,7 +140,6 @@ const MainPage = ({ user }) => {
           lastPayment: response[0].dateTo,
           progress
         });
-        console.log(workoutStats);
       }
     } catch (error) {
       const completed = 0;
@@ -347,7 +345,6 @@ const MainPage = ({ user }) => {
           >
             {workouts.map((workout) => {
               const client = todayClients.find(c => c.id === workout.clientId);
-              console.log(client);
               if (!client) return null;
 
               return (

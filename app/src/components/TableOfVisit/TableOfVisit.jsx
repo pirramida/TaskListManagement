@@ -44,7 +44,7 @@ function addHours(date, hours) {
     return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
 
-const TableOfVisit = ({ client, addToast }) => {
+const TableOfVisit = ({ sessionsHistoryClient, client, addToast }) => {
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth());
@@ -69,10 +69,9 @@ const TableOfVisit = ({ client, addToast }) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetchWithRetry(`/session_history/customGet?clientId=${client.id}`, 'GET');
             const groupedByDate = {};
 
-            response.forEach(item => {
+            sessionsHistoryClient.forEach(item => {
                 const report = item.report ? JSON.parse(item.report) : {};
 
                 const isTrainingTimePresent = !!item.trainingTime;
@@ -90,10 +89,10 @@ const TableOfVisit = ({ client, addToast }) => {
                     : 'completed';
 
                 const info = `Тип: ${status === 'missed' ? 'Перенесена' : 'Проведена'}
-Оценка: ${report.rating || '-'}
-Интенсивность: ${report.intensity || '-'}
-Комментарий: ${report.writeoffComment || report.comment || '-'}
-Причина: ${report.reason || '-'}`;
+                                Оценка: ${report.rating || '-'}
+                                Интенсивность: ${report.intensity || '-'}
+                                Комментарий: ${report.writeoffComment || report.comment || '-'}
+                                Причина: ${report.reason || '-'}`;
 
                 if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
                 groupedByDate[dateStr].push({ status, info, action: item.action || report.action || '' });
@@ -157,10 +156,9 @@ const TableOfVisit = ({ client, addToast }) => {
 
                     // Проверяем условия
                     let bgColor = '#f5f5f5'; // по умолчанию
-
                     if (actions.length > 0) {
                         const allWriteOff = actions.every(a => a === 'Списание тренировки');
-                        const allMissed = actions.every(a => a === 'Перенесенная тренировка');
+                        const allMissed = actions.every(a => a === 'Перенесенная тренировка без списания' || a === 'Перенесенная тренировка со списанием');
 
                         if (allWriteOff) {
                             bgColor = 'lightgreen';  // зеленый
