@@ -1,46 +1,58 @@
-# Getting Started with Create React App
+# TaskListManagement позже переименнуется в FitTrainer или что то типо того.
+# FitTrainer — система управления клиентами для тренеров
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**FitTrainer** — это веб-приложение, созданное специально для персональных тренеров. Оно автоматизирует рутинные задачи и помогает вести учёт клиентов, их достижений и расписания тренировок, а также финансов.
 
-## Available Scripts
+## Основные возможности
 
-In the project directory, you can run:
+- **Управление клиентами**
+  - Хранение информации о клиентах
+  - Учёт посещений и остатка занятий в пакете
+  - История тренировок и прогресс
 
+- **Финансовый учёт**
+  - Подсчёт дохода тренера по каждому клиенту
+  - Учёт списаний за тренировки с отчётом или без
+
+- **Аналитика прогресса**
+  - Графики веса, объёмов и других параметров
+  - Сравнение фото "до" и "после" с удобным интерфейсом
+
+- **Автоматическое планирование**
+  - Генерация тренировок с учётом особенностей клиента
+  - Возможность редактирования плана вручную
+
+- **Интеграция с Google Календарём**
+  - Подключение Google-аккаунта
+  - Отображение запланированных тренировок прямо в телефоне
+
+- **Уведомления**
+  - Напоминания о предстоящих тренировках
+  - Уведомления о днях рождения клиентов
+
+- **Главная страница**
+  - Список тренировок на сегодня и завтра
+  - Быстрый доступ к информации и действиям
+
+## Используемые технологии
+
+- **Frontend**: React.js
+- **Backend**: Nest.js
+- **База данных**: SQLite
+- **Дополнительно**: REST API, Google OAuth, Google Calendar API
+
+## Планы на будущее
+
+- Расширение логики по автоматическому составлению тренировок
+- Увеличение отображения статистик и графиков
+- Мобильная версия приложения
+- Уведомления через Telegram-бота
+- Поддержка нескольких тренеров в одной системе
+
+---
+# Как запустить?
+Для запуска клиентской части ничего не нужно толком. Предварительно у вас должна быть установлена свежая версия node.js, дальше мы устанавливаем зависимости и библиотект -> выполнить команду npm i. После этого все что ниже!
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [https://localhost:3000](https://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Эта команда запустит приложение, но пустой клиент без сервера. Для того чтобы запустить сервер надо скачать другой проект: GitHub: https://github.com/pirramida/serverForTrener
+Приложение откроется в браузере: [http://localhost:3002](http://localhost:3002)
