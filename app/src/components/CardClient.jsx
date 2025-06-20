@@ -1028,7 +1028,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                         <Box height={300} display="flex" alignItems="center" justifyContent="center">
                           <Box textAlign="center">
                             <Typography variant="body2" color="text.secondary" mt={1}>
-                              <StatisticGraphs />
+                              <StatisticGraphs clientId={editedClient.id}/>
                             </Typography>
                           </Box>
                         </Box>

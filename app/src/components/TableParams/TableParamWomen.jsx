@@ -147,16 +147,31 @@ export default function TableParamWoman({ clientId }) {
   };
 
   const handleDeleteCorrection = (colIndex) => {
-    setData((prev) =>
-      prev.map((row) => {
-        const newRow = [...row];
-        newRow.splice(colIndex, 1);
-        return newRow;
-      })
-    );
-    setIsEdited(true);
+    const newData = data.map((row) => {
+      const newRow = [...row];
+      newRow.splice(colIndex, 1);
+      return newRow;
+    });
+
+    setData(newData);
+    setIsEdited(false); // потому что мы сразу сохраняем
+
     setEditedColumn(null);
+
+    const columns = {
+      parameters,
+      primary: newData.map((row) => row[0]),
+      corrections:
+        newData[0].length > 1
+          ? Array.from({ length: newData[0].length - 1 }, (_, i) =>
+            newData.map((row) => row[i + 1])
+          )
+          : [],
+    };
+
+    submitData(columns); // <--- это ключевое
   };
+
 
   const handleSave = () => {
     const columns = {
