@@ -11,6 +11,10 @@ import {
 } from "recharts";
 import { Box, Typography, Checkbox, FormControlLabel, Button } from "@mui/material";
 import dayjs from "dayjs";
+import minMax from 'dayjs/plugin/minMax';
+
+// Подключаем плагин
+dayjs.extend(minMax);
 
 const colors = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300"];
 

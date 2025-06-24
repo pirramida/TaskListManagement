@@ -16,8 +16,9 @@ import {
     FormControl,
 } from "@mui/material";
 import { fetchWithRetry } from "../utils/refreshToken";
+import { addToast } from "../utils/addToast";
 
-const AdditionalPayDialog = ({ open, onClose, onSubmit, clients }) => {
+const AdditionalPayDialog = ({ onSuccess, open, onClose, onSubmit, clients, userId }) => {
     const [isOurClient, setIsOurClient] = useState(true);
     const [selectedClient, setSelectedClient] = useState(null);
     const [externalClientName, setExternalClientName] = useState("");
@@ -26,28 +27,44 @@ const AdditionalPayDialog = ({ open, onClose, onSubmit, clients }) => {
     const [comment, setComment] = useState("");
 
     // Клише суммы и типов дохода для автокомплита
-    const amountOptions = ["500", "1000", "2000", "3000", "5000"];
+    const amountOptions = ["1000", "2000", "3000", "5000", "10000"];
     const incomeTypeOptions = [
         "Продажа программы тренировок",
         "Продажа диеты",
         "СПТ",
         "Консультация",
+        "Онлайн ведение",
         "Другое",
     ];
 
     const handleSave = async () => {
-        const form = {
-            client: isOurClient ? selectedClient : externalClientName,
+        const now = new Date();
+        now.setHours(now.getHours() + 3);
+        const datePlus3 = now.toISOString();
+
+        const formData = {
+            client_name: isOurClient ? selectedClient.name : externalClientName,
             isOurClient,
             amount,
             incomeType,
             comment,
+            date: datePlus3,
+            client_id: isOurClient ? selectedClient.id : null,
+            userId,
         }
         try {
-            // const response = await fetchWithRetry('', 'POST')
+            const response = await fetchWithRetry('additional_payments', 'POST', {
+                ...formData,
+            });
+            if (onSuccess) {
+                onSuccess(); // <<< вот здесь обновляется статистика
+            }
+            addToast('successAdditioanlPayments', 'success', `${response.message}`, 1500);
         } catch (error) {
+            addToast('errorAdditioanlPayments', 'error', `Произошла ошибка. Попробуйто позже или сообщите администратору!`, 1500);
+
             console.error('ПРоизошла ошибка при добавлении сторонней оплаты!');
-        } 
+        }
         onClose();
         // Сбросить состояние
         setIsOurClient(true);

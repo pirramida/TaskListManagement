@@ -247,10 +247,10 @@ const ClientFoto = ({ clientId }) => {
       };
 
       setFolders((prev) => [newFolder, ...prev]);
+      refreshData();
+
     } catch (error) {
       console.error("Не удалось создать папку на сервере", error);
-    } finally {
-      refreshData();
     }
   };
 
@@ -517,7 +517,7 @@ const ClientFoto = ({ clientId }) => {
       {/* Основной экран */}
       <div className="main-view">
         <div className="primary-section">
-          <h2>Первичные фотографии</h2>
+          <h2 className="section-title">Первичные фотографии</h2>
           <div className="photo-types">
             {Object.entries(PHOTO_TYPES).map(([type, { label, icon }]) => (
               <div key={type} className="photo-type">
@@ -566,7 +566,7 @@ const ClientFoto = ({ clientId }) => {
 
         <div className="folders-section">
           <div className="folders-header">
-            <h2>Корректировочные фото</h2>
+            <h2 className="section-title">Корректировочные фото</h2>
             {/* 💡 Добавляем кнопку сравнения */}
             {selectedFolders.length > 0 && (
               <div style={{}}>

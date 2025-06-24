@@ -30,8 +30,9 @@ import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
 import ClientFoto from '../components/ClientFoto/ClientFoto.jsx'
 import TableOfVisit from '../components/TableOfVisit/TableOfVisit.jsx'
 import StatisticGraphs from '../components/StatisticGraphs/StatisticGraphs.jsx'
+import TableStepsAndCalories from '../components/TableStepsAndCalories/TableStepsAndCalories.jsx';
 
-const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
+const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -425,7 +426,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                             type="number"
                             variant="outlined"
                             sx={{ width: 70, backgroundColor: 'white', borderRadius: 1 }}
-                            inputProps={{ style: { padding: '4px 8px' } }}
+                            inputProps={{ style: { padding: '4px 0px' } }}
                           />
                           <Box fontSize="0.9rem">см</Box>
                         </Box>
@@ -601,7 +602,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
         </Box>
         {/* Основное содержимое */}
         <DialogContent dividers sx={{ p: 0 }}>
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 1 }}>
             {/* Табы */}
             <Tabs
               value={activeTab}
@@ -609,7 +610,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
               variant="scrollable"
               scrollButtons="auto"
               sx={{
-                mb: 3,
+                mb: 1,
                 '& .MuiTabs-indicator': {
                   height: 3,
                   borderRadius: 3,
@@ -625,7 +626,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
             </Tabs>
 
             {/* Содержимое табов */}
-            <Box>
+            <Box >
               {activeTab === 0 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
@@ -808,9 +809,12 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
 
               {activeTab === 1 && (
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <Box sx={{ mr: 2 }}>
+                  <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="body2" color="text.secondary">
                       <ClientFoto clientId={client.id} />
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <TableStepsAndCalories userId={userId} clientId={client.id} />
                     </Typography>
                   </Box>
                   <Box>
@@ -999,54 +1003,67 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
               )}
 
               {activeTab === 4 && (
-                <Box>
+                <Box sx={{ p: 2, backgroundColor: theme.palette.background.default }}>
                   <Grid container spacing={3}>
-                    <Grid item xs={12} md={8}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        height: 400,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                          <Box textAlign="center">
-                            <Typography variant="body2" color="text.secondary" mt={1}>
-                              <TableOfVisit sessionsHistoryClient={sessionsHistoryClient} client={client} addToast={addToast} setSelectedClient={setSelectedClient} />
-                            </Typography>
-                          </Box>
+
+                    {/* Левая часть: Таблица посещений + Аналитика (узкая колонка ~25%) */}
+                    <Grid item xs={12} md={3}>
+                      <Paper
+                        elevation={1}
+                        sx={{
+                          p: 1,
+                          borderRadius: 2,
+                          background: theme.palette.background.paper,
+                          boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color={theme.palette.text.primary}
+                          fontWeight={600}
+                          sx={{ userSelect: 'none', mb: 1 }}
+                        >
+                          История посещений
+                        </Typography>
+                        <Box sx={{ flexGrow: 1, overflowY: 'auto', fontSize: 13, maxHeight: 300 }}>
+                          <TableOfVisit
+                            sessionsHistoryClient={sessionsHistoryClient}
+                            client={client}
+                            addToast={addToast}
+                            setSelectedClient={setSelectedClient}
+                          />
                         </Box>
                       </Paper>
-                    </Grid>
 
-                    <Grid item xs={12} md={8}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        height: 400,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                          <Box textAlign="center">
-                            <Typography variant="body2" color="text.secondary" mt={1}>
-                              <StatisticGraphs clientId={editedClient.id}/>
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Paper>
-                    </Grid>
-
-                    <Grid item xs={12} md={4}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        height: 400,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                      {/* Аналитика тренировок (под таблицей) */}
+                      <Paper
+                        elevation={1}
+                        sx={{
+                          p: 1,
+                          borderRadius: 2,
+                          mt: 2,
+                          background: theme.palette.background.paper,
+                          boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-start",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color={theme.palette.text.primary}
+                          fontWeight={300}
+                          gutterBottom
+                          sx={{ userSelect: 'none', mb: 1 }}
+                        >
                           Эффективность тренировок
                         </Typography>
 
-                        <Box sx={{ '& > div': { mb: 2 } }}>
+                        <Box sx={{ flexGrow: 0 }}>
                           {[
                             { label: 'Средняя посещаемость', value: '78%', progress: 78 },
                             { label: 'Прогресс веса', value: '-8 кг', progress: 65 },
@@ -1054,8 +1071,12 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                           ].map((item, index) => (
                             <Box key={index} sx={{ mb: 2 }}>
                               <Box display="flex" justifyContent="space-between" mb={0.5}>
-                                <Typography variant="body2">{item.label}</Typography>
-                                <Typography variant="body2" fontWeight={500}>{item.value}</Typography>
+                                <Typography variant="caption" color={theme.palette.text.secondary}>
+                                  {item.label}
+                                </Typography>
+                                <Typography variant="caption" fontWeight={700} color={theme.palette.text.primary}>
+                                  {item.value}
+                                </Typography>
                               </Box>
                               <LinearProgress
                                 variant="determinate"
@@ -1063,32 +1084,81 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
                                 sx={{
                                   height: 6,
                                   borderRadius: 3,
-                                  bgcolor: theme.palette.action.selected
+                                  bgcolor: theme.palette.action.selected,
+                                  '& .MuiLinearProgress-bar': {
+                                    borderRadius: 3,
+                                    backgroundColor: theme.palette.primary.main,
+                                  },
                                 }}
                               />
                             </Box>
                           ))}
                         </Box>
 
-                        <Box mt={4}>
-                          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                            Рекомендации
-                          </Typography>
-                          <Paper sx={{
-                            p: 2,
-                            background: theme.palette.background.default
-                          }}>
-                            <Typography variant="body2">
-                              {client.gender === 'Male' ?
-                                "Рекомендуем увеличить количество силовых тренировок для достижения цели." :
-                                "Рекомендуем добавить кардио-сессии для лучшего результата."}
-                            </Typography>
-                          </Paper>
+                        <Typography
+                          variant="subtitle2"
+                          color={theme.palette.text.primary}
+                          fontWeight={600}
+                          gutterBottom
+                          sx={{ userSelect: 'none', mt: 2 }}
+                        >
+                          Рекомендации
+                        </Typography>
+                        <Paper
+                          sx={{
+                            backgroundColor: theme.palette.background.default,
+                            borderRadius: 2,
+                            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.05)',
+                            flexGrow: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: 13,
+                            color: theme.palette.text.secondary,
+                            lineHeight: 1.3,
+                            p: 1.5,
+                          }}
+                        >
+                          {client.gender === 'Male' ?
+                            "Рекомендуем увеличить количество силовых тренировок для достижения цели." :
+                            "Рекомендуем добавить кардио-сессии для лучшего результата."
+                          }
+                        </Paper>
+                      </Paper>
+                    </Grid>
+
+                    {/* Правая часть: Статистика графиков (широкая колонка ~75%) */}
+                    <Grid item xs={12} md={9}>
+                      <Paper
+                        elevation={1}
+                        sx={{
+                          p: 1,
+                          borderRadius: 2,
+                          height: 600,
+                          background: theme.palette.background.paper,
+                          boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color={theme.palette.text.primary}
+                          fontWeight={600}
+                          mb={1}
+                          sx={{ userSelect: 'none' }}
+                        >
+                          Статистика тренировок
+                        </Typography>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <StatisticGraphs clientId={editedClient.id} />
                         </Box>
                       </Paper>
                     </Grid>
+
                   </Grid>
                 </Box>
+
               )}
             </Box>
           </Box>
@@ -1105,6 +1175,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
         client={client}
         clients={client}
         setClient={setClient}
+        reloadClients={() => fetchData()}
       />
 
       {/* Диалог с информацией о транзакции */}
@@ -1118,6 +1189,7 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
         handleSave={handleSave}
         getFieldIcon={getFieldIcon}
         renderStatusChip={renderStatusChip}
+
       />
 
       {/* Диалог списания тренировки */}
@@ -1126,6 +1198,9 @@ const CardClient = ({ setAction, action, open, onClose, client, onPayment, fetch
         onClose={() => setWriteOffDialog()}
         client={client}
         fetchDataQuantity={fetchDataQuantity}
+        onSuccess={onSuccess}
+        reloadClients={() => fetchData()}
+
       />
 
       {/* Диалог подтверждения удаления */}

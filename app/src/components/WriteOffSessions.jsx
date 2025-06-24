@@ -46,7 +46,7 @@ const conditionOptions = [
 ];
 const intensityOptions = ['Лёгкая', 'Средняя', 'Тяжёлая', 'До отказа', 'Интервальная'];
 
-export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity }) => {
+export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, client, fetchDataQuantity }) => {
   const [view, setView] = useState('completed');
   const [form, setForm] = useState({
     conditionAfter: '',
@@ -143,6 +143,13 @@ export const WriteOffSessions = ({ open, onClose, client, fetchDataQuantity }) =
         return
       }
       fetchDataQuantity();
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      if (reloadClients) {
+        reloadClients();
+      }
       addToast('successWriteOffSession', 'success', `Тренировки успешно списана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`, 1000);
       onClose();
     } catch (error) {

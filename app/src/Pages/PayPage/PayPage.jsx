@@ -19,7 +19,7 @@ import {
   Autocomplete,
   Chip,
   Divider,
-  IconButton,
+  Tooltip,
   useTheme,
   useMediaQuery,
   Avatar,
@@ -98,6 +98,7 @@ const PayPage = ({ user }) => {
     cashInMonth: 0,
     sessionsInMonth: 0,
     averageReceipt: 0,
+    additionalPymentsInMonth: 0,
   });
 
   const [filters, setFilters] = useState({});
@@ -111,6 +112,7 @@ const PayPage = ({ user }) => {
 
   const [open, setOpen] = useState(false);
   const memoizedFilteredPayments = useMemo(() => filteredPayments, [filteredPayments]);
+  const total = statistic.cashInMonth + statistic.additionalPymentsInMonth;
 
 
   useEffect(() => {
@@ -142,6 +144,7 @@ const PayPage = ({ user }) => {
       setStatistic({
         cashInMonth: response2[0].cashInMonth,
         sessionsInMonth: response2[0].sessionsInMonth,
+        additionalPymentsInMonth: response2[0].additionalPymentsInMonth,
         averageReceipt: (
           response2[0].cashInMonth / response2[0].sessionsInMonth
         ).toFixed(2),
@@ -346,7 +349,19 @@ const PayPage = ({ user }) => {
             color: 'white'
           }}>
             <Typography variant="h6">Доход</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>{statistic.cashInMonth} ₽</Typography>
+            <Tooltip
+              title={
+                <>
+                  <div>За тернировки: {statistic.cashInMonth}₽</div>
+                  <div>Доп. доход: {statistic.additionalPymentsInMonth}₽</div>
+                </>
+              }
+              arrow
+            >
+              <Typography variant="h4" sx={{ fontWeight: 700, cursor: 'pointer' }}>
+                {total}₽
+              </Typography>
+            </Tooltip>
             <Typography variant="body2">за текущий месяц</Typography>
           </Paper>
           <Paper sx={{
@@ -483,6 +498,7 @@ const PayPage = ({ user }) => {
             onClose={() => setIsDialogOpen(false)}
             fetchWithRetry={fetchWithRetry}
             addToast={addToast}
+            onSuccess={fetchDataPayList}
           />
         )}
 
@@ -513,10 +529,12 @@ const PayPage = ({ user }) => {
           open={openPayDialog}
           onClose={() => setOpenPayDialog(false)}
           clients={clients}
+          userId={user.id}
           onSubmit={(data) => {
             console.log("Оплата:", data);
             // отправить на сервер или в стейт
           }}
+          onSuccess={fetchDataPayList}
         />
       </Box>
       <Dialog open={open} onClose={() => setOpen(false)}>

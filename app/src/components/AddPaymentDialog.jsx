@@ -48,6 +48,7 @@ import ruLocale from "date-fns/locale/ru";
 import { addToast } from "../utils/addToast";
 
 export default function AddPaymentDialog({
+  reloadClients,
   open,
   onClose,
   clients,
@@ -73,7 +74,7 @@ export default function AddPaymentDialog({
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
-  
+
   const handleCloseDialog = () => {
     onClose(false);
     setClient(null);
@@ -92,7 +93,7 @@ export default function AddPaymentDialog({
   const handleAddPayment = async () => {
     if (client && amount && paymentDate) {
       const hasDigits = /\d/.test(customPaymentType);
-      if (hasDigits) { addToast('errorNumber', 'error', 'Удалите цифры из причины!', 1500); return};
+      if (hasDigits) { addToast('errorNumber', 'error', 'Удалите цифры из причины!', 1500); return };
       const newPayment = {
         id: generateReadableId(),
         date: paymentDate.toISOString().split("T")[0],
@@ -118,7 +119,9 @@ export default function AddPaymentDialog({
           addToast("error", "error", "Ошибка принятия данных с сервер!", 1000);
           return;
         }
-
+        if (reloadClients) {
+          reloadClients();
+        }
         setCustomSessionsCount(1);
         fetchDataPayList();
       } catch (error) {
