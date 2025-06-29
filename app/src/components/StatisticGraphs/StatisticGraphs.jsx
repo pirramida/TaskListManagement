@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { fetchWithRetry } from "../../utils/refreshToken";
 import dayjs from "dayjs";
-import GanttChart from './graphGanta';
+import GanttChart from "./graphGanta";
 
 const axisGroups = {
   bodyMeasurements: [
@@ -36,27 +36,22 @@ const axisGroups = {
     "Состояние до тренировки",
     "Состояние после тренировки",
   ],
-  showGantt: [
-    "Разовое",
-    "Пакет 10",
-    "Пакет 20",
-    "Другое",
-  ],
+  showGantt: ["Разовое", "Пакет 10", "Пакет 20", "Другое"],
 };
 
 const conditionMap = {
-  "Отлично": 5,
-  "Хорошо": 4,
-  "Средне": 3,
-  "Плохо": 2,
-  "Устал": 1,
+  Отлично: 5,
+  Хорошо: 4,
+  Средне: 3,
+  Плохо: 2,
+  Устал: 1,
   "": 0,
 };
 
 const intensityMap = {
-  "Тяжёлая": 3,
-  "Средняя": 2,
-  "Лёгкая": 1,
+  Тяжёлая: 3,
+  Средняя: 2,
+  Лёгкая: 1,
   "": 0,
 };
 
@@ -71,61 +66,65 @@ const reverseIntensityMap = Object.fromEntries(
 
 const transformMeasurements = (parameters, sessions) => {
   const measurements = {};
-  const primaryDate = parameters.primary.find(p => p.param === "Дата")?.primary;
+  const primaryDate = parameters.primary.find(
+    (p) => p.param === "Дата"
+  )?.primary;
 
-  parameters.primary.forEach(p => {
+  parameters.primary.forEach((p) => {
     if (p.param !== "Дата" && p.primary) {
-      measurements[p.param] = [{
-        date: primaryDate,
-        value: parseFloat(p.primary),
-        isPrimary: true
-      }];
+      measurements[p.param] = [
+        {
+          date: primaryDate,
+          value: parseFloat(p.primary),
+          isPrimary: true,
+        },
+      ];
     }
   });
 
-  parameters.corrections.forEach(entry => {
-    const date = entry.find(p => p.param === "Дата")?.corr;
+  parameters.corrections.forEach((entry) => {
+    const date = entry.find((p) => p.param === "Дата")?.corr;
     if (!date) return;
 
-    entry.forEach(p => {
+    entry.forEach((p) => {
       if (p.param !== "Дата" && p.corr) {
         if (!measurements[p.param]) measurements[p.param] = [];
         measurements[p.param].push({
           date,
           value: parseFloat(p.corr),
-          isPrimary: false
+          isPrimary: false,
         });
       }
     });
   });
 
   measurements["Оценка тренировки"] = sessions
-    .filter(s => s.type === "completed" && s.rating > 0)
-    .map(s => ({
+    .filter((s) => s.type === "completed" && s.rating > 0)
+    .map((s) => ({
       date: s.trainingTime,
       value: s.rating,
       isPrimary: false,
     }));
 
   measurements["Интенсивность тренировки"] = sessions
-    .filter(s => s.type === "completed")
-    .map(s => ({
+    .filter((s) => s.type === "completed")
+    .map((s) => ({
       date: s.trainingTime,
       value: intensityMap[s.intensity] ?? 0,
       isPrimary: false,
     }));
 
   measurements["Состояние до тренировки"] = sessions
-    .filter(s => s.type === "completed")
-    .map(s => ({
+    .filter((s) => s.type === "completed")
+    .map((s) => ({
       date: s.trainingTime,
       value: conditionMap[s.conditionBefore] ?? 0,
       isPrimary: false,
     }));
 
   measurements["Состояние после тренировки"] = sessions
-    .filter(s => s.type === "completed")
-    .map(s => ({
+    .filter((s) => s.type === "completed")
+    .map((s) => ({
       date: s.trainingTime,
       value: conditionMap[s.conditionAfter] ?? 0,
       isPrimary: false,
@@ -137,7 +136,7 @@ const transformMeasurements = (parameters, sessions) => {
 const mergeToChartData = (measurements, selectedParams) => {
   const dateMap = {};
 
-  selectedParams.forEach(param => {
+  selectedParams.forEach((param) => {
     const entries = measurements[param] || [];
     entries.forEach(({ date, value, isPrimary }) => {
       if (!dateMap[date]) dateMap[date] = { date, _raw: {} };
@@ -147,11 +146,13 @@ const mergeToChartData = (measurements, selectedParams) => {
   });
 
   const merged = [];
-  Object.values(dateMap).forEach(entry => {
+  Object.values(dateMap).forEach((entry) => {
     const { date, _raw } = entry;
     const result = { date };
     Object.entries(_raw).forEach(([param, values]) => {
-      const sorted = values.sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
+      const sorted = values.sort(
+        (a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0)
+      );
       result[param] = sorted[0].value;
     });
     merged.push(result);
@@ -159,9 +160,9 @@ const mergeToChartData = (measurements, selectedParams) => {
 
   return merged
     .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .map(entry => ({
+    .map((entry) => ({
       ...entry,
-      date: dayjs(entry.date).format("DD.MM.YYYY")
+      date: dayjs(entry.date).format("DD.MM.YYYY"),
     }));
 };
 
@@ -170,16 +171,23 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
 
   return (
-    <Box sx={{ backgroundColor: "white", padding: 1, border: "1px solid #ccc" }}>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>{label}</Typography>
+    <Box
+      sx={{ backgroundColor: "white", padding: 1, border: "1px solid #ccc" }}
+    >
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        {label}
+      </Typography>
       {payload.map(({ name, value }, i) => {
         // Для параметров тренировок и состояния показываем текст вместо числа
         let displayValue = value;
         if (name === "Оценка тренировки") {
-          displayValue = value + ' ⭐️';
+          displayValue = value + " ⭐️";
         } else if (name === "Интенсивность тренировки") {
           displayValue = reverseIntensityMap[value] || value;
-        } else if (name === "Состояние до тренировки" || name === "Состояние после тренировки") {
+        } else if (
+          name === "Состояние до тренировки" ||
+          name === "Состояние после тренировки"
+        ) {
           displayValue = reverseConditionMap[value] || value;
         }
 
@@ -206,7 +214,7 @@ const StatisticGraphs = ({ clientId }) => {
     "20 тренировок": true,
     other: true,
   });
-  
+
   const receive = async () => {
     try {
       const response = await fetchWithRetry(
@@ -215,7 +223,10 @@ const StatisticGraphs = ({ clientId }) => {
         { clientId }
       );
 
-      const data = transformMeasurements(response.parameters, response.sessions);
+      const data = transformMeasurements(
+        response.parameters,
+        response.sessions
+      );
       setMeasurements(data);
       setSelectedParams([]);
       setChartData([]);
@@ -227,7 +238,7 @@ const StatisticGraphs = ({ clientId }) => {
 
   const handleCheckboxChange = (param) => {
     const updated = selectedParams.includes(param)
-      ? selectedParams.filter(p => p !== param)
+      ? selectedParams.filter((p) => p !== param)
       : [...selectedParams, param];
 
     setSelectedParams(updated);
@@ -247,7 +258,9 @@ const StatisticGraphs = ({ clientId }) => {
           {/* Кнопки групп */}
           <Box sx={{ mb: 2 }}>
             <Button
-              variant={selectedGroup === "bodyMeasurements" ? "contained" : "outlined"}
+              variant={
+                selectedGroup === "bodyMeasurements" ? "contained" : "outlined"
+              }
               onClick={() => {
                 setSelectedGroup("bodyMeasurements");
                 setSelectedParams([]);
@@ -259,7 +272,9 @@ const StatisticGraphs = ({ clientId }) => {
               Параметры тела
             </Button>
             <Button
-              variant={selectedGroup === "trainingStates" ? "contained" : "outlined"}
+              variant={
+                selectedGroup === "trainingStates" ? "contained" : "outlined"
+              }
               onClick={() => {
                 setSelectedGroup("trainingStates");
                 setSelectedParams([]);
@@ -276,7 +291,7 @@ const StatisticGraphs = ({ clientId }) => {
                 setSelectedGroup("showGantt");
                 setSelectedParams([]);
                 setChartData([]);
-                setShowGantt(true);  // показываем Гантт
+                setShowGantt(true); // показываем Гантт
               }}
               sx={{ mr: 1 }}
             >
@@ -287,11 +302,18 @@ const StatisticGraphs = ({ clientId }) => {
           <Box sx={{ display: "flex" }}>
             {/* Чекбоксы */}
             <Box sx={{ minWidth: 200, mr: 4 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, fontSize: "0.95rem" }}>
-                Параметры ({selectedGroup === "bodyMeasurements" ? "общая шкала" : "тренировок"})
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 600, mb: 1, fontSize: "0.95rem" }}
+              >
+                Параметры (
+                {selectedGroup === "bodyMeasurements"
+                  ? "общая шкала"
+                  : "тренировок"}
+                )
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                {currentParams.map(param => (
+                {currentParams.map((param) => (
                   <FormControlLabel
                     key={param}
                     sx={{ fontSize: "0.85rem", ml: 0 }}
@@ -302,7 +324,11 @@ const StatisticGraphs = ({ clientId }) => {
                         onChange={() => handleCheckboxChange(param)}
                       />
                     }
-                    label={<Typography sx={{ fontSize: "0.85rem" }}>{param}</Typography>}
+                    label={
+                      <Typography sx={{ fontSize: "0.85rem" }}>
+                        {param}
+                      </Typography>
+                    }
                   />
                 ))}
               </Box>
@@ -327,7 +353,18 @@ const StatisticGraphs = ({ clientId }) => {
                       key={param}
                       type="monotone"
                       dataKey={param}
-                      stroke={["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#00c49f", "#ff0000", "#0088FE", "#00C49F"][index % 8]}
+                      stroke={
+                        [
+                          "#8884d8",
+                          "#82ca9d",
+                          "#ffc658",
+                          "#ff7300",
+                          "#00c49f",
+                          "#ff0000",
+                          "#0088FE",
+                          "#00C49F",
+                        ][index % 8]
+                      }
                       strokeWidth={2}
                       dot={{ r: 3 }}
                       activeDot={{ r: 5 }}
@@ -340,21 +377,8 @@ const StatisticGraphs = ({ clientId }) => {
         </Box>
       )}
 
-      {!showGantt && chartData.length > 0 && (
-        <Box sx={{ flexGrow: 1, overflowX: "auto" }}>
-          <LineChart
-            width={700}
-            height={400}
-            data={chartData}
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-          >
-            {/* ...твой LineChart с линиями */}
-          </LineChart>
-        </Box>
-      )}
-
       {showGantt && payments.length > 0 && (
-        <GanttChart payments={payments} />
+        <GanttChart payments={payments} filters={filters} />
       )}
     </Box>
   );

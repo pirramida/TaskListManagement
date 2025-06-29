@@ -84,7 +84,7 @@ h4 {
 .photo-preview {
   width: 140px;
   /* узкое */
-  height: 25vh;
+  height: 23vh;
   /* высокое */
   object-fit: cover;
   border-radius: var(--border-radius);

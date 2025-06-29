@@ -928,7 +928,7 @@ const ClientFoto = ({ clientId }) => {
               justifyContent: "center",
               alignItems: "center",
               height: "100%",
-              gap: "40px",
+              gap: "10px",
               padding: "40px",
             }}
           >

@@ -1,38 +1,95 @@
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Typography, Avatar, Box, Tabs, Tab,
-  Divider, Chip, LinearProgress, Paper, IconButton,
-  TextField, Grid, Menu, MenuItem, ListItemIcon,
-  Badge, Tooltip, useTheme, Alert, Snackbar
-} from '@mui/material';
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Avatar,
+  Box,
+  Tabs,
+  Tab,
+  Divider,
+  Chip,
+  LinearProgress,
+  Paper,
+  IconButton,
+  TextField,
+  Grid,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Badge,
+  Tooltip,
+  useTheme,
+  Alert,
+  Snackbar,
+} from "@mui/material";
 import {
-  Add, Person, FitnessCenter, Timeline, Assignment,
-  Phone, Cake, Straighten, MonitorWeight, Male, Female,
-  AccessTime, Close, Edit, Save, Delete, Payment,
-  MoreVert, CheckCircle, AttachMoney, Height, Scale,
-  Receipt, Warning, History
-} from '@mui/icons-material';
-import React, { useState, useRef, useEffect } from 'react';
-import PaymentsTable from './PaymentsTable';
-import AddPaymentDialog from './AddPaymentDialog';
-import PaymentDetailsDialog from './DialogOpenDetails'
-import WriteOffSessions from './WriteOffSessions';
-import PaidIcon from '@mui/icons-material/Paid';
-import PersonIcon from '@mui/icons-material/Person';
-import EventIcon from '@mui/icons-material/Event';
-import PhoneIcon from '@mui/icons-material/Phone';
-import NotesIcon from '@mui/icons-material/Notes';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WriteOffTable from '../components/WriteOffTableT';
-import TableParamWoman from '../components/TableParams/TableParamWomen.jsx';
-import ClientFoto from '../components/ClientFoto/ClientFoto.jsx'
-import TableOfVisit from '../components/TableOfVisit/TableOfVisit.jsx'
-import StatisticGraphs from '../components/StatisticGraphs/StatisticGraphs.jsx'
-import TableStepsAndCalories from '../components/TableStepsAndCalories/TableStepsAndCalories.jsx';
+  Add,
+  Person,
+  FitnessCenter,
+  Timeline,
+  Assignment,
+  SportsMartialArts,
+  Phone,
+  Cake,
+  Straighten,
+  MonitorWeight,
+  Male,
+  Female,
+  AccessTime,
+  Close,
+  Edit,
+  Save,
+  Delete,
+  Payment,
+  MoreVert,
+  CheckCircle,
+  AttachMoney,
+  Height,
+  Scale,
+  Receipt,
+  Warning,
+  History,
+} from "@mui/icons-material";
+import React, { useState, useRef, useEffect } from "react";
+import PaymentsTable from "./PaymentsTable";
+import AddPaymentDialog from "./AddPaymentDialog";
+import PaymentDetailsDialog from "./DialogOpenDetails";
+import WriteOffSessions from "./WriteOffSessions";
+import PaidIcon from "@mui/icons-material/Paid";
+import PersonIcon from "@mui/icons-material/Person";
+import EventIcon from "@mui/icons-material/Event";
+import PhoneIcon from "@mui/icons-material/Phone";
+import NotesIcon from "@mui/icons-material/Notes";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WriteOffTable from "../components/WriteOffTableT";
+import TableParamWoman from "../components/TableParams/TableParamWomen.jsx";
+import ClientFoto from "../components/ClientFoto/ClientFoto.jsx";
+import TableOfVisit from "../components/TableOfVisit/TableOfVisit.jsx";
+import StatisticGraphs from "../components/StatisticGraphs/StatisticGraphs.jsx";
+import TableStepsAndCalories from "../components/TableStepsAndCalories/TableStepsAndCalories.jsx";
+import TabAboutClient from "./TabAboutClient/TabAboutClient";
+import FitnessTesting from "./FitnessTesting/FitnessTesting";
 
-const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPayment, fetchWithRetry, addSnackBar, fetchData, addToast, setSelectedClient }) => {
+const CardClient = React.memo((props) => {
+  const {
+    onSuccess,
+    setAction,
+    action,
+    open,
+    onClose,
+    client,
+    onPayment,
+    fetchWithRetry,
+    addSnackBar,
+    fetchData,
+    addToast,
+    setSelectedClient,
+  } = props;
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +107,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
     remaining: 0,
     total: 0,
     lastPayment: 0,
-    progress: 0
+    progress: 0,
   });
   const [payments, setPayments] = useState([]);
   const [showPayments, setShowPayments] = useState(false);
@@ -85,37 +142,42 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
   }, [editedClient?.name]);
 
   useEffect(() => {
-    if (action === 'delete') {
+    if (action === "delete") {
       setConfirmDelete(true);
-      setAction('');
+      setAction("");
       handleCloseContextMenu();
-    } else if (action === 'writeOff') {
+    } else if (action === "writeOff") {
       setWriteOffDialog(true);
-      setAction('');
+      setAction("");
       handleCloseContextMenu();
-    } else if (action === 'payAdd') {
+    } else if (action === "payAdd") {
       setOpenDialog(true);
-      setAction('');
+      setAction("");
       handleCloseContextMenu();
     }
   }, [action]);
 
   const fetchDataQuantity = async () => {
     try {
-      const response = await fetchWithRetry('/payment_history/quantity', 'Patch', client);
+      const response = await fetchWithRetry(
+        "/payment_history/quantity",
+        "Patch",
+        client
+      );
       if (response) {
         const completed = response[0].quantity - response[0].quantityLeft || 0;
         const remaining = response[0].quantity || 0;
 
         const total = remaining;
-        const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+        const progress =
+          total === 0 ? 0 : Math.round((completed / total) * 100);
 
         setWorkoutStats({
           completed,
           remaining,
           total,
           lastPayment: response[0].dateTo,
-          progress
+          progress,
         });
       }
     } catch (error) {
@@ -129,7 +191,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         completed,
         remaining,
         total,
-        progress
+        progress,
       });
       // addToast('errorResponseQuantity', 'error', 'НЕполучилось загрузить количество по пакету', 1000);
     }
@@ -137,21 +199,30 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPayment(prev => ({ ...prev, [name]: value }));
+    setPayment((prev) => ({ ...prev, [name]: value }));
   };
 
   const getFieldIcon = (name) => {
     switch (name) {
-      case 'amount': return <PaidIcon fontSize="small" />;
-      case 'client': return <PersonIcon fontSize="small" />;
-      case 'date':
-      case 'dateTo': return <EventIcon fontSize="small" />;
-      case 'phone': return <PhoneIcon fontSize="small" />;
-      case 'notes': return <NotesIcon fontSize="small" />;
-      case 'method': return <CreditCardIcon fontSize="small" />;
-      case 'type': return <FitnessCenterIcon fontSize="small" />;
-      case 'status': return <CheckCircleIcon fontSize="small" />;
-      default: return null;
+      case "amount":
+        return <PaidIcon fontSize="small" />;
+      case "client":
+        return <PersonIcon fontSize="small" />;
+      case "date":
+      case "dateTo":
+        return <EventIcon fontSize="small" />;
+      case "phone":
+        return <PhoneIcon fontSize="small" />;
+      case "notes":
+        return <NotesIcon fontSize="small" />;
+      case "method":
+        return <CreditCardIcon fontSize="small" />;
+      case "type":
+        return <FitnessCenterIcon fontSize="small" />;
+      case "status":
+        return <CheckCircleIcon fontSize="small" />;
+      default:
+        return null;
     }
   };
 
@@ -161,23 +232,25 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
       primary: theme.palette.primary.main,
       dark: theme.palette.primary.dark,
       light: theme.palette.primary.light,
-      gradient: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+      gradient: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
     },
     Female: {
       primary: theme.palette.secondary.main,
       dark: theme.palette.secondary.dark,
       light: theme.palette.secondary.light,
-      gradient: `linear-gradient(135deg, ${theme.palette.secondary.dark} 0%, ${theme.palette.secondary.main} 100%)`
-    }
+      gradient: `linear-gradient(135deg, ${theme.palette.secondary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
+    },
   };
 
-  const currentColors = genderColors[client.gender] || genderColors.Male;
+  const currentColors = React.useMemo(() => {
+    return genderColors[client.gender] || genderColors.Male;
+  }, [client.gender]);
 
   const renderStatusChip = (status) => {
-    let color = 'default';
-    if (status === 'Активен') color = 'success';
-    if (status === 'Просрочен') color = 'error';
-    if (status === 'Ожидает') color = 'warning';
+    let color = "default";
+    if (status === "Активен") color = "success";
+    if (status === "Просрочен") color = "error";
+    if (status === "Ожидает") color = "warning";
 
     return (
       <Chip
@@ -185,82 +258,103 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         color={color}
         size="small"
         icon={<CheckCircleIcon fontSize="small" />}
-        sx={{ borderRadius: '6px', fontWeight: 500 }}
+        sx={{ borderRadius: "6px", fontWeight: 500 }}
       />
     );
   };
 
-  const handleContextMenu = (e) => {
+  const handleContextMenu = React.useCallback((e) => {
     e.preventDefault();
     setContextMenu({ mouseX: e.clientX, mouseY: e.clientY });
-  };
+  }, []);
 
   const handleCloseContextMenu = () => setContextMenu(null);
 
-  const handleFieldChange = (field, value) => {
-    setEditedClient(prev => ({ ...prev, [field]: value }));
-  };
+  const handleFieldChange = React.useCallback((field, value) => {
+    setEditedClient((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = React.useCallback(async () => {
     try {
-      const response = await fetchWithRetry('/clients', 'PATCH', { phoneNumber: client.phone, form: editedClient });
-      if (response.message === 'Данные пользователя обновлены!') {
-        fetchData()
+      const response = await fetchWithRetry("/clients", "PATCH", {
+        phoneNumber: client.phone,
+        form: editedClient,
+      });
+      if (response.message === "Данныепользователяобновлены!") {
+        fetchData();
         setIsEditing(false);
         setSelectedClient(response.data[0]);
-        addSnackBar('DeleteClient1', 'success', 'Изменения сохранены успешно!');
+        addSnackBar("DeleteClient1", "success", "Изменениясохраненыуспешно!");
       } else {
-        addSnackBar('DeleteClient55', 'error', 'Произошла ошибка при изменении клиента');
+        addSnackBar(
+          "DeleteClient55",
+          "error",
+          "Произошлаошибкаприизмененииклиента"
+        );
       }
     } catch (error) {
-      addSnackBar('DeleteClient', 'error', 'Ошибка в получении данных клиентов с сервера');
+      addSnackBar(
+        "DeleteClient",
+        "error",
+        "Ошибкавполученииданныхклиентовссервера"
+      );
     }
-  };
+  }, [client.phone, editedClient, fetchData, setSelectedClient, addSnackBar]);
 
   const handleDeleteConfirm = async () => {
     try {
-      const response = await fetchWithRetry('/clients', 'DELETE', { phoneNumber: client.phone });
-      if (response.message === 'Клиент удален!') {
-        fetchData()
+      const response = await fetchWithRetry("/clients", "DELETE", {
+        phoneNumber: client.phone,
+      });
+      if (response.message === "Клиент удален!") {
+        fetchData();
         setConfirmDelete(false);
-        addSnackBar('DeleteClient', 'success', 'Клиент успешно удален!');
+        addSnackBar("DeleteClient", "success", "Клиент успешно удален!");
         onClose();
       } else {
-        addSnackBar('DeleteClient3', 'error', 'Произошла ошибка при удалении клиента');
+        addSnackBar(
+          "DeleteClient3",
+          "error",
+          "Произошла ошибка при удалении клиента"
+        );
       }
     } catch (error) {
-      addSnackBar('DeleteClient4', 'error', 'Ошибка в получении данных клиентов с сервера');
+      addSnackBar(
+        "DeleteClient4",
+        "error",
+        "Ошибка в получении данных клиентов с сервера"
+      );
     }
-
   };
 
   const fetchDataPayList = async () => {
     try {
-      const response = await fetchWithRetry('/payment_history', 'GET');
-      const filtered = response.filter(payment => payment.client === editedClient.name);
+      const response = await fetchWithRetry("/payment_history", "GET");
+      const filtered = response.filter(
+        (payment) => payment.client === editedClient.name
+      );
       setPayments(filtered);
-
     } catch (error) {
-      addToast('error', 'error', 'Ошибка добычи данных с сервера!', 1000);
+      addToast("error", "error", "Ошибка добычи данных с сервера!", 1000);
     }
   };
 
   const fetchDataTrainingDay = async () => {
     try {
-      const response = await fetchWithRetry(`/session_history/customGet?clientId=${editedClient.id}`, 'GET');
+      const response = await fetchWithRetry(
+        `/session_history/customGet?clientId=${editedClient.id}`,
+        "GET"
+      );
       setSessionsHistoryClient(response);
     } catch (error) {
-      addToast('error', 'error', 'Ошибка получения данных о истории посечений этого клиента!', 1000);
+      addToast(
+        "error",
+        "error",
+        "Ошибка получения данных о истории посечений этого клиента!",
+        1000
+      );
     }
   };
-
-  // Данные для демонстрации
-  const bodyStats = [
-    { label: 'Грудь', value: client.chest, unit: 'см', icon: <Straighten /> },
-    { label: 'Талия', value: client.waist, unit: 'см', icon: <Straighten /> },
-    { label: 'Бедра', value: client.hips, unit: 'см', icon: <Straighten /> },
-    { label: '% жира', value: client.bodyFat, unit: '%', icon: <MonitorWeight /> }
-  ];
 
   const handleOpen = (client) => {
     setPayment(client);
@@ -269,7 +363,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
 
   const toggleHistory = () => {
     setShowPayments((prev) => !prev);
-  }
+  };
 
   return (
     <>
@@ -282,10 +376,10 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
           sx: {
             background: theme.palette.background.default,
             borderRadius: 0,
-            overflow: 'hidden'
+            overflow: "hidden",
           },
           ref: dialogRef,
-          onContextMenu: handleContextMenu
+          onContextMenu: handleContextMenu,
         }}
       >
         {/* Контекстное меню */}
@@ -299,62 +393,91 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
               : undefined
           }
         >
-          <MenuItem onClick={() => { setConfirmDelete(true); handleCloseContextMenu(); }}>
-            <ListItemIcon><Delete color="error" fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              setConfirmDelete(true);
+              handleCloseContextMenu();
+            }}
+          >
+            <ListItemIcon>
+              <Delete color="error" fontSize="small" />
+            </ListItemIcon>
             <Typography variant="body2">Удалить клиента</Typography>
           </MenuItem>
-          <MenuItem onClick={() => { setOpenDialog(true); handleCloseContextMenu(); }}>
-            <ListItemIcon><AttachMoney color="success" fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              setOpenDialog(true);
+              handleCloseContextMenu();
+            }}
+          >
+            <ListItemIcon>
+              <AttachMoney color="success" fontSize="small" />
+            </ListItemIcon>
             <Typography variant="body2">Зарегистрировать оплату</Typography>
           </MenuItem>
-          <MenuItem onClick={() => { setWriteOffDialog(true); handleCloseContextMenu(); }}>
+          <MenuItem
+            onClick={() => {
+              setWriteOffDialog(true);
+              handleCloseContextMenu();
+            }}
+          >
             <Typography variant="body2">Списать тренировку!</Typography>
           </MenuItem>
         </Menu>
 
         {/* Шапка профиля */}
-        <Box sx={{
-          background: currentColors.gradient,
-          color: 'white',
-          p: 3,
-          position: 'relative',
-          overflow: 'hidden',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: -50,
-            right: -50,
-            width: 200,
-            height: 200,
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: '50%'
-          }
-        }}>
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+        <Box
+          sx={{
+            background: currentColors.gradient,
+            color: "white",
+            p: 1,
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: -50,
+              right: -50,
+              width: 200,
+              height: 200,
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "50%",
+            },
+          }}
+        >
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="flex-start"
+          >
             <Box display="flex" alignItems="center" gap={3}>
               <Badge
                 overlap="circular"
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 badgeContent={
-                  <Box sx={{
-                    bgcolor: 'success.main',
-                    color: 'white',
-                    borderRadius: '50%',
-                    p: 0.5,
-                    display: 'flex'
-                  }}>
+                  <Box
+                    sx={{
+                      bgcolor: "success.main",
+                      color: "white",
+                      borderRadius: "50%",
+                      p: 0.5,
+                      display: "flex",
+                    }}
+                  >
                     <CheckCircle fontSize="small" />
                   </Box>
                 }
               >
-                <Avatar sx={{
-                  width: 80,
-                  height: 80,
-                  bgcolor: 'background.paper',
-                  color: currentColors.dark,
-                  fontSize: '2rem',
-                  border: '3px solid white'
-                }}>
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: "background.paper",
+                    color: currentColors.dark,
+                    fontSize: "2rem",
+                    border: "3px solid white",
+                  }}
+                >
                   {client.name.charAt(0)}
                 </Avatar>
               </Badge>
@@ -364,17 +487,21 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                   {isEditing ? (
                     <TextField
                       value={editedClient.name}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
+                      onChange={(e) =>
+                        handleFieldChange("name", e.target.value)
+                      }
                       variant="standard"
                       sx={{
                         input: {
-                          color: 'white',
-                          fontSize: '2rem',
-                          fontWeight: 700
-                        }
+                          color: "white",
+                          fontSize: "2rem",
+                          fontWeight: 700,
+                        },
                       }}
                     />
-                  ) : client.name}
+                  ) : (
+                    client.name
+                  )}
                 </Typography>
                 <Box display="flex" gap={1.5} flexWrap="wrap" sx={{ mt: 1.5 }}>
                   {isEditing ? (
@@ -383,12 +510,17 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                         label="Дата рождения"
                         type="date"
                         value={editedClient.dateOfBirth}
-                        onChange={(e) => handleFieldChange('dateOfBirth', e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange("dateOfBirth", e.target.value)
+                        }
                         size="small"
                         InputLabelProps={{ shrink: true }}
                         sx={{
-                          '& .MuiInputBase-root': { bgcolor: 'rgba(255,255,255,0.2)', color: 'white' },
-                          input: { color: 'white' }
+                          "& .MuiInputBase-root": {
+                            bgcolor: "rgba(255, 255, 255, 0.2)",
+                            color: "white",
+                          },
+                          input: { color: "white" },
                         }}
                       />
                     </>
@@ -397,18 +529,27 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                       <Chip
                         label={`${client.age} лет`}
                         size="small"
-                        icon={<Cake sx={{ color: 'inherit !important' }} />}
-                        sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)' }}
+                        icon={<Cake sx={{ color: "inherit !important" }} />}
+                        sx={{
+                          color: "white",
+                          bgcolor: "rgba(255,255,255,0.2)",
+                          height: 32,
+                        }}
                       />
                       <Chip
-                        label={client.gender === 'Male' ? 'Мужской' : 'Женский'}
+                        label={client.gender === "Male" ? "Мужской" : "Женский"}
                         size="small"
-                        icon={client.gender === 'Male' ?
-                          <Male sx={{ color: 'inherit !important' }} /> :
-                          <Female sx={{ color: 'inherit !important' }} />}
+                        icon={
+                          client.gender === "Male" ? (
+                            <Male sx={{ color: "inherit !important" }} />
+                          ) : (
+                            <Female sx={{ color: "inherit !important" }} />
+                          )
+                        }
                         sx={{
-                          color: 'white',
-                          bgcolor: 'rgba(255,255,255,0.2)'
+                          color: "white",
+                          bgcolor: "rgba(255,255,255,0.2)",
+                          height: 32,
                         }}
                       />
                     </>
@@ -421,12 +562,18 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                           <Box fontSize="0.9rem">Рост:</Box>
                           <TextField
                             value={editedClient.height}
-                            onChange={(e) => handleFieldChange('height', e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("height", e.target.value)
+                            }
                             size="small"
                             type="number"
                             variant="outlined"
-                            sx={{ width: 70, backgroundColor: 'white', borderRadius: 1 }}
-                            inputProps={{ style: { padding: '4px 0px' } }}
+                            sx={{
+                              width: 70,
+                              backgroundColor: "white",
+                              borderRadius: 1,
+                            }}
+                            inputProps={{ style: { padding: "4px 0px" } }}
                           />
                           <Box fontSize="0.9rem">см</Box>
                         </Box>
@@ -435,8 +582,12 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                       )
                     }
                     size="small"
-                    icon={<Height sx={{ color: 'inherit !important' }} />}
-                    sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)', height: 32 }}
+                    icon={<Height sx={{ color: "inherit !important" }} />}
+                    sx={{
+                      color: "white",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      height: 32,
+                    }}
                   />
 
                   <Chip
@@ -446,12 +597,18 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                           <Box fontSize="0.9rem">Вес:</Box>
                           <TextField
                             value={editedClient.weight}
-                            onChange={(e) => handleFieldChange('weight', e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("weight", e.target.value)
+                            }
                             size="small"
                             type="number"
                             variant="outlined"
-                            sx={{ width: 70, backgroundColor: 'white', borderRadius: 1 }}
-                            inputProps={{ style: { padding: '4px 8px' } }}
+                            sx={{
+                              width: 70,
+                              backgroundColor: "white",
+                              borderRadius: 1,
+                            }}
+                            inputProps={{ style: { padding: "4px 8px" } }}
                           />
                           <Box fontSize="0.9rem">кг</Box>
                         </Box>
@@ -460,9 +617,68 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                       )
                     }
                     size="small"
-                    icon={<Scale sx={{ color: 'inherit !important' }} />}
-                    sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)', height: 32 }}
+                    icon={<Scale sx={{ color: "inherit !important" }} />}
+                    sx={{
+                      color: "white",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      height: 32,
+                    }}
                   />
+
+                  <Chip
+                    label={
+                      isEditing ? (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <TextField
+                            value={editedClient.phone}
+                            onChange={(e) =>
+                              handleFieldChange("phone", e.target.value)
+                            }
+                            variant="standard"
+                            fullWidth
+                            sx={{
+                              width: 70,
+                              backgroundColor: "white",
+                              borderRadius: 1,
+                            }}
+                            inputProps={{ style: { padding: "4px 0px" } }}
+                          />
+                          <Box fontSize="0.9rem">см</Box>
+                        </Box>
+                      ) : (
+                        <span>
+                          +7{" "}
+                          {client.phone.replace(
+                            /(\d{1})(\d{3})(\d{3})(\d{4})/,
+                            "+$1 ($2) $3-$4"
+                          )}
+                        </span>
+                      )
+                    }
+                    size="small"
+                    icon={<Phone sx={{ color: "inherit !important" }} />}
+                    sx={{
+                      color: "white",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      height: 32,
+                    }}
+                  />
+                  <Tooltip title="Дата регистрации:">
+                    <Chip
+                      label={
+                        <span>
+                          {new Date(client.createdAt).toLocaleDateString()}
+                        </span>
+                      }
+                      size="small"
+                      icon={<AccessTime sx={{ color: "inherit !important" }} />}
+                      sx={{
+                        color: "white",
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        height: 32,
+                      }}
+                    />
+                  </Tooltip>
                 </Box>
               </Box>
             </Box>
@@ -474,7 +690,10 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     <IconButton
                       onClick={handleSave}
                       color="inherit"
-                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                      }}
                     >
                       <Save />
                     </IconButton>
@@ -483,7 +702,10 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     <IconButton
                       onClick={() => setIsEditing(false)}
                       color="inherit"
-                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                      }}
                     >
                       <Close />
                     </IconButton>
@@ -495,10 +717,16 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
-                        setContextMenu({ mouseX: e.clientX, mouseY: e.clientY });
+                        setContextMenu({
+                          mouseX: e.clientX,
+                          mouseY: e.clientY,
+                        });
                       }}
                       color="inherit"
-                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                      }}
                     >
                       <MoreVert />
                     </IconButton>
@@ -507,7 +735,10 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     <IconButton
                       onClick={() => setIsEditing(true)}
                       color="inherit"
-                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                      }}
                     >
                       <Edit />
                     </IconButton>
@@ -515,7 +746,10 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                   <IconButton
                     onClick={onClose}
                     color="inherit"
-                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                    }}
                   >
                     <Close />
                   </IconButton>
@@ -525,33 +759,39 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
           </Box>
 
           {/* Статус бар */}
-          {workoutStats.completed === 0 && workoutStats.total === 0 && workoutStats.progress === 0 ? (
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mt: 3,
-              background: 'rgba(0,0,0,0.2)',
-              borderRadius: 2,
-              p: 3,
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
+          {workoutStats.completed === 0 &&
+          workoutStats.total === 0 &&
+          workoutStats.progress === 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mt: 3,
+                background: "rgba(0,0,0,0.2)",
+                borderRadius: 2,
+                p: 3,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
               <Typography variant="body1" fontWeight={600}>
                 Пакет не куплен! Купите пакет тренировок
               </Typography>
             </Box>
           ) : (
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              mt: 3,
-              background: 'rgba(0,0,0,0.2)',
-              borderRadius: 2,
-              p: 1.5,
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mt: 3,
+                background: "rgba(0,0,0,0.2)",
+                borderRadius: 2,
+                p: 1.5,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
               <Box flexGrow={1} zIndex={1}>
                 <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
                   Программа тренировок
@@ -564,15 +804,16 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                       height: 8,
                       flexGrow: 1,
                       borderRadius: 4,
-                      bgcolor: 'rgba(133, 74, 74, 0.3)',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: 'rgb(0, 255, 242)',
-                        borderRadius: 4
-                      }
+                      bgcolor: "rgba(133, 74, 74, 0.3)",
+                      "& .MuiLinearProgress-bar": {
+                        backgroundColor: "rgb(0, 255, 242)",
+                        borderRadius: 4,
+                      },
                     }}
                   />
                   <Typography variant="body2" fontWeight={600}>
-                    {workoutStats.completed}/{workoutStats.total} ({workoutStats.progress}%)
+                    {workoutStats.completed}/{workoutStats.total} (
+                    {workoutStats.progress}%)
                   </Typography>
                 </Box>
               </Box>
@@ -580,29 +821,32 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                 <Chip
                   label={`Оплата до ${new Date(workoutStats.lastPayment).toLocaleDateString()}`}
                   size="small"
-                  icon={<AttachMoney sx={{ color: 'inherit !important' }} />}
+                  icon={<AttachMoney sx={{ color: "inherit !important" }} />}
                   sx={{
-                    color: 'white',
-                    bgcolor: 'rgba(255,255,255,0.3)',
-                    fontWeight: 500
+                    color: "white",
+                    bgcolor: "rgba(255,255,255,0.3)",
+                    fontWeight: 500,
                   }}
                 />
               </Box>
-              <Box sx={{
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: '40%',
-                background: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 100%)',
-                zIndex: 0
-              }} />
+              <Box
+                sx={{
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: "40%",
+                  background:
+                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 100%)",
+                  zIndex: 0,
+                }}
+              />
             </Box>
           )}
         </Box>
         {/* Основное содержимое */}
         <DialogContent dividers sx={{ p: 0 }}>
-          <Box sx={{ p: 1 }}>
+          <Box sx={{ padding: "0px 4px" }}>
             {/* Табы */}
             <Tabs
               value={activeTab}
@@ -610,211 +854,76 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
               variant="scrollable"
               scrollButtons="auto"
               sx={{
-                mb: 1,
-                '& .MuiTabs-indicator': {
-                  height: 3,
+                mb: 0,
+                "& .MuiTabs-indicator": {
+                  height: 5,
                   borderRadius: 3,
-                  backgroundColor: currentColors.primary
-                }
+                  backgroundColor: currentColors.primary,
+                },
               }}
             >
-              <Tab label="Обзор" icon={<Person fontSize="small" />} iconPosition="start" />
-              <Tab label="Прогресс" icon={<Timeline fontSize="small" />} iconPosition="start" />
-              <Tab label="Тренировки" icon={<FitnessCenter fontSize="small" />} iconPosition="start" />
-              <Tab label="Оплаты" icon={<Receipt fontSize="small" />} iconPosition="start" />
-              <Tab label="Аналитика" icon={<Assignment fontSize="small" />} iconPosition="start" />
+              <Tab
+                label="Обзор"
+                icon={<Person fontSize="small" />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Прогресс"
+                icon={<Timeline fontSize="small" />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Тренировки"
+                icon={<FitnessCenter fontSize="small" />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Оплаты"
+                icon={<Receipt fontSize="small" />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Аналитика"
+                icon={<Assignment fontSize="small" />}
+                iconPosition="start"
+              />
+              <Tab
+                label="Фитнес-тестрирование"
+                icon={<SportsMartialArts fontSize="small" />}
+                iconPosition="start"
+              />
             </Tabs>
 
             {/* Содержимое табов */}
-            <Box >
+            <Box>
               {activeTab === 0 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Paper elevation={0} sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      height: '100%',
-                      background: theme.palette.background.paper
-                    }}>
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
-                        Основная информация
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-
-                      <Box sx={{ '& > div': { mb: 2 } }}>
-                        <Box display="flex" alignItems="center">
-                          <FitnessCenter sx={{ mr: 1.5, color: 'text.secondary' }} />
-                          <Typography>
-                            <strong>Цель:</strong> {isEditing ? (
-                              <TextField
-                                value={editedClient.goal}
-                                onChange={(e) => handleFieldChange('goal', e.target.value)}
-                                variant="standard"
-                                fullWidth
-                              />
-                            ) : client.goal}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" alignItems="center">
-                          <Box width={120} mr={1.5} display="flex" alignItems="center">
-                            <LinearProgress
-                              variant="determinate"
-                              value={client.activityLevel === 'Низкий' ? 30 : client.activityLevel === 'Средний' ? 60 : 90}
-                              color={getActivityColor(client.activityLevel)}
-                              sx={{
-                                height: 6,
-                                flexGrow: 1,
-                                borderRadius: 3
-                              }}
-                            />
-                          </Box>
-                          <Typography>
-                            <strong>Активность:</strong> {isEditing ? (
-                              <TextField
-                                select
-                                value={editedClient.activityLevel}
-                                onChange={(e) => handleFieldChange('activityLevel', e.target.value)}
-                                variant="standard"
-                                sx={{ width: 120 }}
-                              >
-                                <MenuItem value="Низкий">Низкий</MenuItem>
-                                <MenuItem value="Средний">Средний</MenuItem>
-                                <MenuItem value="Высокий">Высокий</MenuItem>
-                              </TextField>
-                            ) : client.activityLevel}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" alignItems="center">
-                          <Phone sx={{ mr: 1.5, color: 'text.secondary' }} />
-                          <Typography>
-                            <strong>Телефон:</strong> {isEditing ? (
-                              <TextField
-                                value={editedClient.phone}
-                                onChange={(e) => handleFieldChange('phone', e.target.value)}
-                                variant="standard"
-                                fullWidth
-                              />
-                            ) : client.phone.replace(/(\d{1})(\d{3})(\d{3})(\d{4})/, '+$1 ($2) $3-$4')}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" alignItems="center">
-                          <AccessTime sx={{ mr: 1.5, color: 'text.secondary' }} />
-                          <Typography>
-                            <strong>Дата регистрации:</strong> {new Date(client.createdAt).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Paper>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Paper elevation={0} sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      height: '100%',
-                      background: theme.palette.background.paper
-                    }}>
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
-                        Физические параметры
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-
-                      <Grid container spacing={2}>
-                        {bodyStats.map((stat, index) => (
-                          <Grid item xs={6} sm={3} key={index}>
-                            <Paper sx={{
-                              p: 2,
-                              textAlign: 'center',
-                              background: theme.palette.background.default,
-                              height: '100%'
-                            }}>
-                              <Box sx={{
-                                width: 40,
-                                height: 40,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                bgcolor: theme.palette.action.selected,
-                                borderRadius: '50%',
-                                margin: '0 auto 8px'
-                              }}>
-                                {stat.icon}
-                              </Box>
-                              <Typography variant="h5" fontWeight={500}>
-                                {isEditing ? (
-                                  <TextField
-                                    value={editedClient[stat.label === 'Грудь' ? 'chest' :
-                                      stat.label === 'Талия' ? 'waist' :
-                                        stat.label === 'Бедра' ? 'hips' : 'bodyFat']}
-                                    onChange={(e) => handleFieldChange(
-                                      stat.label === 'Грудь' ? 'chest' :
-                                        stat.label === 'Талия' ? 'waist' :
-                                          stat.label === 'Бедра' ? 'hips' : 'bodyFat',
-                                      e.target.value
-                                    )}
-                                    size="small"
-                                    type="number"
-                                    sx={{ width: 80 }}
-                                  />
-                                ) : stat.value} {stat.unit}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {stat.label}
-                              </Typography>
-                            </Paper>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Paper>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Paper elevation={0} sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      background: theme.palette.background.paper
-                    }}>
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
-                        Дополнительная информация
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-
-                      <Typography paragraph sx={{ mb: 2 }}>
-                        <strong>Травмы/ограничения:</strong> {isEditing ? (
-                          <TextField
-                            value={editedClient.injuries}
-                            onChange={(e) => handleFieldChange('injuries', e.target.value)}
-                            fullWidth
-                            multiline
-                            variant="standard"
-                          />
-                        ) : client.injuries || 'Не указаны'}
-                      </Typography>
-                      {/* <Typography>
-                          <strong>История тренировок:</strong> {isEditing ? (
-                            <TextField
-                              value={Array.isArray(editedClient.trainingHistory) 
-                                ? editedClient.trainingHistory.join(', ') 
-                                : editedClient.trainingHistory}
-                              onChange={(e) => handleFieldChange('trainingHistory', e.target.value)}
-                              fullWidth
-                              variant="standard"
-                            />
-                          ) : client.trainingHistory ? JSON.parse(client.trainingHistory).join(', ') : 'Нет данных'}
-                        </Typography> */}
-                    </Paper>
-                  </Grid>
-                </Grid>
+                <TabAboutClient editedClient={editedClient} client={client} />
               )}
 
               {activeTab === 1 && (
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      mr: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
                     <Typography variant="body2" color="text.secondary">
                       <ClientFoto clientId={client.id} />
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      <TableStepsAndCalories userId={userId} clientId={client.id} />
+                      <TableStepsAndCalories
+                        userId={userId}
+                        clientId={client.id}
+                      />
                     </Typography>
                   </Box>
                   <Box>
@@ -831,13 +940,24 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
 
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={8}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                          <Typography variant="subtitle1" color="text.secondary">
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 3,
+                          borderRadius: 3,
+                          background: theme.palette.background.paper,
+                        }}
+                      >
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={3}
+                        >
+                          <Typography
+                            variant="subtitle1"
+                            color="text.secondary"
+                          >
                             Текущий прогресс
                           </Typography>
                           <Chip
@@ -855,25 +975,43 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                             mb: 3,
                             borderRadius: 5,
                             bgcolor: theme.palette.action.selected,
-                            '& .MuiLinearProgress-bar': {
-                              borderRadius: 5
-                            }
+                            "& .MuiLinearProgress-bar": {
+                              borderRadius: 5,
+                            },
                           }}
                         />
 
                         <Grid container spacing={2}>
                           {[
-                            { value: workoutStats.completed, label: 'Пройдено', color: 'primary' },
-                            { value: workoutStats.remaining, label: 'Осталось', color: 'secondary' },
-                            { value: `${workoutStats.progress}%`, label: 'Прогресс', color: 'success' }
+                            {
+                              value: workoutStats.completed,
+                              label: "Пройдено",
+                              color: "primary",
+                            },
+                            {
+                              value: workoutStats.remaining,
+                              label: "Осталось",
+                              color: "secondary",
+                            },
+                            {
+                              value: `${workoutStats.progress}%`,
+                              label: "Прогресс",
+                              color: "success",
+                            },
                           ].map((item, index) => (
                             <Grid item xs={4} key={index}>
-                              <Paper sx={{
-                                p: 2,
-                                textAlign: 'center',
-                                background: theme.palette.background.default
-                              }}>
-                                <Typography variant="h4" color={`${item.color}.main`} fontWeight={600}>
+                              <Paper
+                                sx={{
+                                  p: 2,
+                                  textAlign: "center",
+                                  background: theme.palette.background.default,
+                                }}
+                              >
+                                <Typography
+                                  variant="h4"
+                                  color={`${item.color}.main`}
+                                  fontWeight={600}
+                                >
                                   {item.value}
                                 </Typography>
                                 <Typography variant="body2">
@@ -887,30 +1025,58 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     </Grid>
 
                     <Grid item xs={12} md={4}>
-                      <Paper elevation={0} sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: theme.palette.background.paper
-                      }}>
-                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 3,
+                          borderRadius: 3,
+                          background: theme.palette.background.paper,
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle1"
+                          color="text.secondary"
+                          gutterBottom
+                        >
                           Последние тренировки
                         </Typography>
 
-                        <Box sx={{ '& > div': { mb: 1.5 } }}>
+                        <Box sx={{ "& > div": { mb: 1.5 } }}>
                           {[
-                            { date: 'Сегодня', type: 'Силовая', duration: '60 мин' },
-                            { date: 'Вчера', type: 'Кардио', duration: '45 мин' },
-                            { date: '18.06.2023', type: 'Функциональная', duration: '55 мин' }
+                            {
+                              date: "Сегодня",
+                              type: "Силовая",
+                              duration: "60 мин",
+                            },
+                            {
+                              date: "Вчера",
+                              type: "Кардио",
+                              duration: "45 мин",
+                            },
+                            {
+                              date: "18.06.2023",
+                              type: "Функциональная",
+                              duration: "55 мин",
+                            },
                           ].map((item, index) => (
-                            <Paper key={index} sx={{
-                              p: 1.5,
-                              background: theme.palette.background.default
-                            }}>
-                              <Box display="flex" justifyContent="space-between">
+                            <Paper
+                              key={index}
+                              sx={{
+                                p: 1.5,
+                                background: theme.palette.background.default,
+                              }}
+                            >
+                              <Box
+                                display="flex"
+                                justifyContent="space-between"
+                              >
                                 <Typography variant="body2" fontWeight={500}>
                                   {item.type}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
                                   {item.date}
                                 </Typography>
                               </Box>
@@ -928,7 +1094,12 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
 
               {activeTab === 3 && (
                 <Box>
-                  <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    mb={3}
+                  >
                     {/* Левая часть — заголовок */}
                     <Box flex={1}>
                       <Typography variant="h6" fontWeight={600}>
@@ -943,23 +1114,24 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                         onClick={toggleHistory}
                         startIcon={<History />}
                         sx={{
-                          color: '#6a11cb',
-                          borderColor: '#6a11cb',
+                          color: "#6a11cb",
+                          borderColor: "#6a11cb",
                           borderRadius: 3,
                           px: 4,
                           py: 1.2,
                           fontWeight: 600,
-                          textTransform: 'none',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
-                            color: '#fff',
-                            borderColor: 'transparent',
-                            boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
+                          textTransform: "none",
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+                            color: "#fff",
+                            borderColor: "transparent",
+                            boxShadow: "0 4px 15px rgba(106, 17, 203, 0.3)",
                           },
                         }}
                       >
-                        {showPayments ? 'История списаний' : 'История оплат'}
+                        {showPayments ? "История списаний" : "История оплат"}
                       </Button>
                     </Box>
 
@@ -970,16 +1142,18 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                         startIcon={<Add />}
                         onClick={() => setOpenDialog(true)}
                         sx={{
-                          background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                          background:
+                            "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
                           borderRadius: 3,
                           px: 4,
                           py: 1.5,
-                          boxShadow: '0 4px 15px rgba(106, 17, 203, 0.3)',
-                          textTransform: 'none',
+                          boxShadow: "0 4px 15px rgba(106, 17, 203, 0.3)",
+                          textTransform: "none",
                           fontWeight: 600,
-                          '&:hover': {
-                            boxShadow: '0 6px 20px rgba(106, 17, 203, 0.4)',
-                            background: 'linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)',
+                          "&:hover": {
+                            boxShadow: "0 6px 20px rgba(106, 17, 203, 0.4)",
+                            background:
+                              "linear-gradient(135deg, #5e0ec0 0%, #1e63e9 100%)",
                           },
                         }}
                       >
@@ -988,24 +1162,25 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                     </Box>
                   </Box>
 
-
                   {!showPayments ? (
                     <PaymentsTable
                       payments={payments}
                       handleOpen={handleOpen}
                     />
                   ) : (
-                    <WriteOffTable
-                      filters={editedClient}
-                    />
+                    <WriteOffTable filters={editedClient} />
                   )}
                 </Box>
               )}
 
               {activeTab === 4 && (
-                <Box sx={{ p: 2, backgroundColor: theme.palette.background.default }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    backgroundColor: theme.palette.background.default,
+                  }}
+                >
                   <Grid container spacing={3}>
-
                     {/* Левая часть: Таблица посещений + Аналитика (узкая колонка ~25%) */}
                     <Grid item xs={12} md={3}>
                       <Paper
@@ -1025,11 +1200,18 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                           variant="subtitle2"
                           color={theme.palette.text.primary}
                           fontWeight={600}
-                          sx={{ userSelect: 'none', mb: 1 }}
+                          sx={{ userSelect: "none", mb: 1 }}
                         >
                           История посещений
                         </Typography>
-                        <Box sx={{ flexGrow: 1, overflowY: 'auto', fontSize: 13, maxHeight: 300 }}>
+                        <Box
+                          sx={{
+                            flexGrow: 1,
+                            overflowY: "auto",
+                            fontSize: 12,
+                            maxHeight: 600,
+                          }}
+                        >
                           <TableOfVisit
                             sessionsHistoryClient={sessionsHistoryClient}
                             client={client}
@@ -1058,23 +1240,41 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                           color={theme.palette.text.primary}
                           fontWeight={300}
                           gutterBottom
-                          sx={{ userSelect: 'none', mb: 1 }}
+                          sx={{ userSelect: "none", mb: 1 }}
                         >
                           Эффективность тренировок
                         </Typography>
 
                         <Box sx={{ flexGrow: 0 }}>
                           {[
-                            { label: 'Средняя посещаемость', value: '78%', progress: 78 },
-                            { label: 'Прогресс веса', value: '-8 кг', progress: 65 },
-                            { label: 'Изменение % жира', value: '-3.5%', progress: 70 }
+                            {
+                              label: "Средняя посещаемость",
+                              value: "78%",
+                              progress: 78,
+                            },
+                            {
+                              label: "Прогресс веса",
+                              value: "-8 кг",
+                              progress: 65,
+                            },
                           ].map((item, index) => (
                             <Box key={index} sx={{ mb: 2 }}>
-                              <Box display="flex" justifyContent="space-between" mb={0.5}>
-                                <Typography variant="caption" color={theme.palette.text.secondary}>
+                              <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                mb={0.5}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  color={theme.palette.text.secondary}
+                                >
                                   {item.label}
                                 </Typography>
-                                <Typography variant="caption" fontWeight={700} color={theme.palette.text.primary}>
+                                <Typography
+                                  variant="caption"
+                                  fontWeight={700}
+                                  color={theme.palette.text.primary}
+                                >
                                   {item.value}
                                 </Typography>
                               </Box>
@@ -1085,7 +1285,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                                   height: 6,
                                   borderRadius: 3,
                                   bgcolor: theme.palette.action.selected,
-                                  '& .MuiLinearProgress-bar': {
+                                  "& .MuiLinearProgress-bar": {
                                     borderRadius: 3,
                                     backgroundColor: theme.palette.primary.main,
                                   },
@@ -1094,35 +1294,6 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                             </Box>
                           ))}
                         </Box>
-
-                        <Typography
-                          variant="subtitle2"
-                          color={theme.palette.text.primary}
-                          fontWeight={600}
-                          gutterBottom
-                          sx={{ userSelect: 'none', mt: 2 }}
-                        >
-                          Рекомендации
-                        </Typography>
-                        <Paper
-                          sx={{
-                            backgroundColor: theme.palette.background.default,
-                            borderRadius: 2,
-                            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.05)',
-                            flexGrow: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: 13,
-                            color: theme.palette.text.secondary,
-                            lineHeight: 1.3,
-                            p: 1.5,
-                          }}
-                        >
-                          {client.gender === 'Male' ?
-                            "Рекомендуем увеличить количество силовых тренировок для достижения цели." :
-                            "Рекомендуем добавить кардио-сессии для лучшего результата."
-                          }
-                        </Paper>
                       </Paper>
                     </Grid>
 
@@ -1146,7 +1317,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                           color={theme.palette.text.primary}
                           fontWeight={600}
                           mb={1}
-                          sx={{ userSelect: 'none' }}
+                          sx={{ userSelect: "none" }}
                         >
                           Статистика тренировок
                         </Typography>
@@ -1155,16 +1326,17 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
                         </Box>
                       </Paper>
                     </Grid>
-
                   </Grid>
                 </Box>
-
+              )}
+              {activeTab === 5 && (
+                <div>
+                  <FitnessTesting editedClient={editedClient.id} />
+                </div>
               )}
             </Box>
           </Box>
         </DialogContent>
-
-
       </Dialog>
 
       {/* Диалог с оплатой */}
@@ -1189,7 +1361,6 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         handleSave={handleSave}
         getFieldIcon={getFieldIcon}
         renderStatusChip={renderStatusChip}
-
       />
 
       {/* Диалог списания тренировки */}
@@ -1200,7 +1371,6 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         fetchDataQuantity={fetchDataQuantity}
         onSuccess={onSuccess}
         reloadClients={() => fetchData()}
-
       />
 
       {/* Диалог подтверждения удаления */}
@@ -1218,7 +1388,8 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Вы действительно хотите удалить клиента {client.name}? Это действие нельзя отменить.
+            Вы действительно хотите удалить клиента {client.name}? Это действие
+            нельзя отменить.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1234,17 +1405,7 @@ const CardClient = ({ onSuccess, setAction, action, open, onClose, client, onPay
         </DialogActions>
       </Dialog>
     </>
-
   );
-};
-
-function getActivityColor(activity) {
-  switch (activity) {
-    case 'Низкий': return 'error';
-    case 'Средний': return 'warning';
-    case 'Высокий': return 'success';
-    default: return 'info';
-  }
-}
+});
 
 export default React.memo(CardClient);

@@ -110,10 +110,11 @@ export default function TableParamWoman({ clientId }) {
   };
 
   const handleCellChange = (value, rowIndex, colIndex) => {
-    setData(prev => {
-      if (prev[rowIndex][colIndex] === value) return prev;
-      const newData = [...prev.map(row => [...row])];
-      newData[rowIndex][colIndex] = value;
+    const normalizedValue = value.replace(",", "."); // ← заменяем запятую на точку
+    setData((prev) => {
+      if (prev[rowIndex][colIndex] === normalizedValue) return prev;
+      const newData = [...prev.map((row) => [...row])];
+      newData[rowIndex][colIndex] = normalizedValue;
       return newData;
     });
     setIsEdited(true);
@@ -164,14 +165,13 @@ export default function TableParamWoman({ clientId }) {
       corrections:
         newData[0].length > 1
           ? Array.from({ length: newData[0].length - 1 }, (_, i) =>
-            newData.map((row) => row[i + 1])
-          )
+              newData.map((row) => row[i + 1])
+            )
           : [],
     };
 
     submitData(columns); // <--- это ключевое
   };
-
 
   const handleSave = () => {
     const columns = {
@@ -180,8 +180,8 @@ export default function TableParamWoman({ clientId }) {
       corrections:
         data[0].length > 1
           ? Array.from({ length: data[0].length - 1 }, (_, i) =>
-            data.map((row) => row[i + 1])
-          )
+              data.map((row) => row[i + 1])
+            )
           : [],
     };
     setIsEdited(false);
@@ -236,43 +236,48 @@ export default function TableParamWoman({ clientId }) {
     1 + startCorrection + MAX_VISIBLE_CORRECTIONS
   );
 
-  const CorrectionCell = React.memo(({ primaryValue, correctionValue, isEditing, onChange }) => {
+  const CorrectionCell = React.memo(
+    ({ primaryValue, correctionValue, isEditing, onChange }) => {
+      const parseFloatSafe = (val) => {
+        const num = parseFloat(val);
+        return isNaN(num) ? null : num;
+      };
 
-    const parseFloatSafe = (val) => {
-      const num = parseFloat(val);
-      return isNaN(num) ? null : num;
-    };
+      const primary = parseFloatSafe(primaryValue);
+      const correction = parseFloatSafe(correctionValue);
+      const diff =
+        primary !== null && correction !== null ? correction - primary : null;
+      const diffColor = diff > 0 ? "red" : diff < 0 ? "green" : "inherit";
 
-    const primary = parseFloatSafe(primaryValue);
-    const correction = parseFloatSafe(correctionValue);
-    const diff =
-      primary !== null && correction !== null ? correction - primary : null;
-    const diffColor = diff > 0 ? "red" : diff < 0 ? "green" : "inherit";
-
-    return (
-      <Box
-        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-      >
-        {isEditing ? (
-          <StyledInputBase
-            value={correctionValue}
-            onChange={(e) => onChange(e.target.value)}
-            sx={{ width: "100%" }} // если нужно добавить что-то дополнительное
-          />
-        ) : (
-          <Box>
-            <span>{correctionValue}</span>
-            {diff !== null && diff !== 0 && (
-              <span style={{ color: diffColor, marginLeft: 4 }}>
-                ({diff > 0 ? "+" : ""}
-                {diff.toFixed(1)})
-              </span>
-            )}
-          </Box>
-        )}
-      </Box>
-    );
-  });
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {isEditing ? (
+            <StyledInputBase
+              value={correctionValue}
+              onChange={(e) => onChange(e.target.value)}
+              sx={{ width: "100%" }} // если нужно добавить что-то дополнительное
+            />
+          ) : (
+            <Box>
+              <span>{correctionValue}</span>
+              {diff !== null && diff !== 0 && (
+                <span style={{ color: diffColor, marginLeft: 4 }}>
+                  ({diff > 0 ? "+" : ""}
+                  {diff.toFixed(1)})
+                </span>
+              )}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+  );
 
   return (
     <Box
@@ -353,12 +358,12 @@ export default function TableParamWoman({ clientId }) {
             margin: 0,
             padding: 0,
             width: "auto",
-            minWidth: "800px", // ← Добавь вот эту строку
+            // minWidth: "800px", // ← Добавь вот эту строку
             tableLayout: "fixed",
 
             "& .MuiTableCell-root": {
               border: "1px solid #d0d7de",
-              padding: "8px 10px",
+              padding: "4px 0px",
               backgroundColor: "inherit",
               color: "#1c1c1e",
               fontSize: "0.85rem",
@@ -383,31 +388,30 @@ export default function TableParamWoman({ clientId }) {
             },
 
             "& .MuiTableHead-root .MuiTableRow-root .MuiTableCell-root:first-of-type":
-            {
-              borderTopLeftRadius: "12px",
-            },
+              {
+                borderTopLeftRadius: "12px",
+              },
             "& .MuiTableCell-root:first-of-type": {
               paddingLeft: "8px !important",
             },
             "& .MuiTableHead-root .MuiTableRow-root .MuiTableCell-root:last-of-type":
-            {
-              borderTopRightRadius: "12px",
-            },
+              {
+                borderTopRightRadius: "12px",
+              },
 
             "& .MuiTableBody-root .MuiTableRow-root:nth-of-type(odd) .MuiTableCell-root":
-            {
-              backgroundColor: "#ffffff",
-            },
+              {
+                backgroundColor: "#ffffff",
+              },
             "& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) .MuiTableCell-root":
-            {
-              backgroundColor: "rgba(232, 206, 241, 0.51)",
-            },
+              {
+                backgroundColor: "rgba(232, 206, 241, 0.51)",
+              },
             "& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root": {
               backgroundColor: "#e0f2fe",
             },
             "& .MuiInputBase-input": {
               padding: "0px !important",
-
             },
           }}
         >
@@ -467,6 +471,7 @@ export default function TableParamWoman({ clientId }) {
                 colSpan={visibleCorrections.length}
                 sx={{
                   borderTopRightRadius: "8px",
+                  width: '100% !important'
                 }}
               >
                 Корректировка
@@ -532,7 +537,9 @@ export default function TableParamWoman({ clientId }) {
           <TableBody>
             {parameters.map((param, rowIndex) => (
               <TableRow key={`row-${rowIndex}`}>
-                <TableCell key={`label-${rowIndex}`} title={`${param}`}>{param}</TableCell>
+                <TableCell key={`label-${rowIndex}`} title={`${param}`}>
+                  {param}
+                </TableCell>
 
                 <TableCell>
                   {editedColumn === 0 ? (
@@ -581,7 +588,9 @@ export default function TableParamWoman({ clientId }) {
                         // Редактируемая ячейка
                         <StyledInputBase
                           value={data[rowIndex][colIndex] || ""}
-                          onChange={(e) => handleCellChange(e.target.value, rowIndex, colIndex)}
+                          onChange={(e) =>
+                            handleCellChange(e.target.value, rowIndex, colIndex)
+                          }
                         />
                       ) : rowIndex === 0 ? (
                         // Обычное отображение значения
