@@ -369,11 +369,6 @@ export default function FitnessTesting({ editedClient }) {
     if (!editTestName.trim() || !editTestId) return;
 
     try {
-      // Отправляем PATCH на сервер
-      console.log(editTestId);
-      console.log(editTestName);
-      console.log(editTestName.trim());
-
       const res = await fetchWithRetry(
         `/fitness_test/changeNameTest/${editTestId}`,
         'PATCH',

@@ -365,6 +365,25 @@ const CardClient = React.memo((props) => {
     setShowPayments((prev) => !prev);
   };
 
+  const generateMonthlyReport = async () => {
+    const payload = {
+      clientId: editedClient.id,
+    }
+    const res = await fetchWithRetry('/report/monthly', 'POST', payload);
+console.log('typeof res.blob:', typeof res.blob);
+
+    // Получаем Blob из Response
+    const blob = await res.blob();
+console.log('typeof blobblob.blob:', blob);
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'monthly_report.pdf';
+    a.click();
+
+  }
+
   return (
     <>
       <Dialog
@@ -679,6 +698,16 @@ const CardClient = React.memo((props) => {
                       }}
                     />
                   </Tooltip>
+                  <Chip
+                    size="small"
+                    icon={<Button onClick={() => generateMonthlyReport()}><Cake sx={{ color: "inherit !important" }} /></Button>}
+                    sx={{
+                      color: "white",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      height: 32,
+                    }}
+                  />
+
                 </Box>
               </Box>
             </Box>
@@ -760,8 +789,8 @@ const CardClient = React.memo((props) => {
 
           {/* Статус бар */}
           {workoutStats.completed === 0 &&
-          workoutStats.total === 0 &&
-          workoutStats.progress === 0 ? (
+            workoutStats.total === 0 &&
+            workoutStats.progress === 0 ? (
             <Box
               sx={{
                 display: "flex",
