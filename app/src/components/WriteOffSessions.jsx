@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   Box,
@@ -19,8 +19,8 @@ import {
   Stack,
   ToggleButtonGroup,
   ToggleButton,
-  Avatar
-} from '@mui/material';
+  Avatar,
+} from "@mui/material";
 import {
   CheckCircleOutline,
   CancelOutlined,
@@ -30,38 +30,60 @@ import {
   SentimentVerySatisfied,
   SentimentSatisfied,
   SentimentDissatisfied,
-  SentimentVeryDissatisfied
-} from '@mui/icons-material';
-import { fetchWithRetry } from '../utils/refreshToken';
-import { addToast } from '../utils/addToast';
-import dayjs from 'dayjs';
+  SentimentVeryDissatisfied,
+} from "@mui/icons-material";
+import { fetchWithRetry } from "../utils/refreshToken";
+import { addToast } from "../utils/addToast";
+import dayjs from "dayjs";
 
-const absenceReasons = ['Заболел', 'Забыл', 'Личные дела', 'Отпуск', 'Предупредил заранее', 'Не предупредил заранее', 'Заболел ребенок', 'Неизвестно'];
-const conditionOptions = [
-  { value: 'Отлично', icon: <SentimentVerySatisfied color="success" /> },
-  { value: 'Хорошо', icon: <SentimentSatisfied color="success" /> },
-  { value: 'Устал', icon: <SentimentDissatisfied color="warning" /> },
-  { value: 'Очень устал', icon: <SentimentVeryDissatisfied color="error" /> },
-  { value: 'Плохо', icon: <SentimentVeryDissatisfied color="error" /> }
+const absenceReasons = [
+  "Заболел",
+  "Забыл",
+  "Личные дела",
+  "Отпуск",
+  "Предупредил заранее",
+  "Не предупредил заранее",
+  "Заболел ребенок",
+  "Неизвестно",
 ];
-const intensityOptions = ['Лёгкая', 'Средняя', 'Тяжёлая', 'До отказа', 'Интервальная'];
+const conditionOptions = [
+  { value: "Отлично", icon: <SentimentVerySatisfied color="success" /> },
+  { value: "Хорошо", icon: <SentimentSatisfied color="success" /> },
+  { value: "Устал", icon: <SentimentDissatisfied color="warning" /> },
+  { value: "Очень устал", icon: <SentimentVeryDissatisfied color="error" /> },
+  { value: "Плохо", icon: <SentimentVeryDissatisfied color="error" /> },
+];
+const intensityOptions = [
+  "Лёгкая",
+  "Средняя",
+  "Тяжёлая",
+  "До отказа",
+  "Интервальная",
+];
 
-export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, client, fetchDataQuantity }) => {
-  const [view, setView] = useState('completed');
+export const WriteOffSessions = ({
+  reloadClients,
+  onSuccess,
+  open,
+  onClose,
+  client,
+  fetchDataQuantity,
+}) => {
+  const [view, setView] = useState("completed");
   const [form, setForm] = useState({
-    conditionAfter: '',
-    conditionBefore: '',
-    intensity: '',
+    conditionAfter: "",
+    conditionBefore: "",
+    intensity: "",
     rating: 0,
-    comment: '',
-    reason: '',
-    reschedule: '',
-    writeoffComment: '',
-    sessionDate: dayjs().format(`YYYY-MM-DDTHH:mm`)
+    comment: "",
+    reason: "",
+    reschedule: "",
+    writeoffComment: "",
+    sessionDate: dayjs().format(`YYYY-MM-DDTHH:mm`),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [writeoffAction, setWriteoffAction] = useState('writeoff');
+  const [writeoffAction, setWriteoffAction] = useState("writeoff");
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
   const [openDialogMissedSession, setOpenDialogMissedSession] = useState(false);
@@ -69,45 +91,48 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
   useEffect(() => {
     if (open) {
       resetForm();
-      setView('completed'); // если хочешь, можно тоже сбросить view
+      setView("completed"); // если хочешь, можно тоже сбросить view
     }
   }, [open]);
 
   useEffect(() => {
     if (open) {
       // Берём дату из client.date или текущую
-      const date = client.date ? dayjs(client.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD');
+      const date = client.date
+        ? dayjs(client.date).format("YYYY-MM-DD")
+        : dayjs().format("YYYY-MM-DD");
       // Берём время из client.time или текущее
-      const time = client.time ? client.time : dayjs().format('HH:mm');
+      const time = client.time ? client.time : dayjs().format("HH:mm");
       // Устанавливаем состояние формы с нужной датой и временем
       setForm({
-        conditionAfter: '',
-        conditionBefore: '',
-        intensity: '',
+        conditionAfter: "",
+        conditionBefore: "",
+        intensity: "",
         rating: 0,
-        comment: '',
-        reason: '',
-        reschedule: '',
-        writeoffComment: '',
-        sessionDate: `${date}T${time}`
+        comment: "",
+        reason: "",
+        reschedule: "",
+        writeoffComment: "",
+        sessionDate: `${date}T${time}`,
       });
-      setWriteoffAction('writeoff');
+      setWriteoffAction("writeoff");
       setErrors({});
-      setView('completed');
+      setView("completed");
     }
   }, [open, client]);
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (view === 'completed') {
-      if (!form.conditionAfter) newErrors.conditionAfter = 'Обязательное поле';
-      if (!form.conditionBefore) newErrors.conditionBefore = 'Обязательное поле';
-      if (!form.intensity) newErrors.intensity = 'Обязательное поле';
-      if (form.rating === 0) newErrors.rating = 'Поставьте оценку';
-    } else if (view === 'missed') {
-      if (!form.reason) newErrors.reason = 'Укажите причину';
-      if (!form.reschedule) newErrors.reschedule = 'Укажите статус переноса';
+    if (view === "completed") {
+      if (!form.conditionAfter) newErrors.conditionAfter = "Обязательное поле";
+      if (!form.conditionBefore)
+        newErrors.conditionBefore = "Обязательное поле";
+      if (!form.intensity) newErrors.intensity = "Обязательное поле";
+      if (form.rating === 0) newErrors.rating = "Поставьте оценку";
+    } else if (view === "missed") {
+      if (!form.reason) newErrors.reason = "Укажите причину";
+      if (!form.reschedule) newErrors.reschedule = "Укажите статус переноса";
     }
 
     setErrors(newErrors);
@@ -115,14 +140,14 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
   };
 
   const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const handleSubmit = async () => {
-    if (view !== 'simple' && view !== 'missed' && !validateForm()) return;
+    if (view !== "simple" && view !== "missed" && !validateForm()) return;
 
     setIsSubmitting(true);
     try {
@@ -130,17 +155,26 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
         clientId: client.id,
         clientName: client.name,
         type: view,
-        ...form
+        ...form,
       };
 
-      if (view === 'simple' || view === 'missed') {
+      if (view === "simple" || view === "missed") {
         payload.action = writeoffAction;
       }
-      const response = await fetchWithRetry('/payment_history', 'PATCH', { client: client, payload: payload, userId: userId });
+      const response = await fetchWithRetry("/payment_history", "PATCH", {
+        client: client,
+        payload: payload,
+        userId: userId,
+      });
 
       if (!response.status) {
-        addToast('errorWriteOffSession', 'error', 'Ошибка списания тренировоки', 1000);
-        return
+        addToast(
+          "errorWriteOffSession",
+          "error",
+          "Ошибка списания тренировоки",
+          1000
+        );
+        return;
       }
       fetchDataQuantity();
       if (onSuccess) {
@@ -150,10 +184,15 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
       if (reloadClients) {
         reloadClients();
       }
-      addToast('successWriteOffSession', 'success', `Тренировки успешно списана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`, 1000);
+      addToast(
+        "successWriteOffSession",
+        "success",
+        `Тренировки успешно списана у ${client.name}, Осталось: ${response.data[0]?.quantityLeft} / ${response.data[0]?.quantity}`,
+        1000
+      );
       onClose();
     } catch (error) {
-      console.error('Ошибка отправки отчета:', error);
+      console.error("Ошибка отправки отчета:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,17 +200,17 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
 
   const resetForm = () => {
     setForm({
-      conditionAfter: '',
-      conditionBefore: '',
-      intensity: '',
+      conditionAfter: "",
+      conditionBefore: "",
+      intensity: "",
       rating: 0,
-      comment: '',
-      reason: '',
-      reschedule: '',
-      writeoffComment: '',
-      sessionDate: dayjs().format('YYYY-MM-DDTHH:mm')
+      comment: "",
+      reason: "",
+      reschedule: "",
+      writeoffComment: "",
+      sessionDate: dayjs().format("YYYY-MM-DDTHH:mm"),
     });
-    setWriteoffAction('writeoff');
+    setWriteoffAction("writeoff");
     setErrors({});
   };
 
@@ -181,8 +220,13 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
   };
 
   const onAddPackage = (id) => {
-    addToast('errorToastBack', 'error', 'Этот функционал пока что не рабоатет. Нужен? Поцелуйте Диму 3 раза!', 2000);
-  }
+    addToast(
+      "errorToastBack",
+      "error",
+      "Этот функционал пока что не рабоатет. Нужен? Поцелуйте Диму 3 раза!",
+      2000
+    );
+  };
 
   const sessionQueueParsed = React.useMemo(() => {
     try {
@@ -194,33 +238,40 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
 
   return (
     <>
-      <Dialog open={open} onClose={() => onClose()} maxWidth="sm" fullWidth >
+      <Dialog open={open} onClose={() => onClose()} maxWidth="sm" fullWidth>
         {Array.isArray(sessionQueueParsed) && sessionQueueParsed.length > 0 ? (
           <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3,
+              }}
+            >
               <Typography variant="h5" fontWeight="bold">
                 {client.name}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{ display: "flex", gap: 1 }}>
                 <Chip
                   label="Проведена"
-                  onClick={() => handleViewChange('completed')}
-                  color={view === 'completed' ? 'primary' : 'default'}
-                  variant={view === 'completed' ? 'filled' : 'outlined'}
+                  onClick={() => handleViewChange("completed")}
+                  color={view === "completed" ? "primary" : "default"}
+                  variant={view === "completed" ? "filled" : "outlined"}
                   icon={<CheckCircleOutline />}
                 />
                 <Chip
                   label="Пропущена"
-                  onClick={() => handleViewChange('missed')}
-                  color={view === 'missed' ? 'primary' : 'default'}
-                  variant={view === 'missed' ? 'filled' : 'outlined'}
+                  onClick={() => handleViewChange("missed")}
+                  color={view === "missed" ? "primary" : "default"}
+                  variant={view === "missed" ? "filled" : "outlined"}
                   icon={<CancelOutlined />}
                 />
                 <Chip
                   label="Списать"
-                  onClick={() => handleViewChange('simple')}
-                  color={view === 'simple' ? 'primary' : 'default'}
-                  variant={view === 'simple' ? 'filled' : 'outlined'}
+                  onClick={() => handleViewChange("simple")}
+                  color={view === "simple" ? "primary" : "default"}
+                  variant={view === "simple" ? "filled" : "outlined"}
                   icon={<FitnessCenter />}
                 />
               </Box>
@@ -233,11 +284,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={form.sessionDate}
-              onChange={(e) => handleChange('sessionDate', e.target.value)}
+              onChange={(e) => handleChange("sessionDate", e.target.value)}
               sx={{ mt: 3, mb: 2 }}
             />
 
-            {view === 'simple' ? (
+            {view === "simple" ? (
               <Card variant="outlined" sx={{ mb: 3 }}>
                 <CardContent>
                   <Stack spacing={3}>
@@ -247,13 +298,15 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                       rows={3}
                       fullWidth
                       value={form.writeoffComment}
-                      onChange={e => handleChange('writeoffComment', e.target.value)}
+                      onChange={(e) =>
+                        handleChange("writeoffComment", e.target.value)
+                      }
                       variant="outlined"
                     />
                   </Stack>
                 </CardContent>
               </Card>
-            ) : view === 'missed' ? (
+            ) : view === "missed" ? (
               <Card variant="outlined" sx={{ mb: 3 }}>
                 <CardContent>
                   <Stack spacing={3}>
@@ -261,9 +314,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                       <FormLabel>Причина отсутствия</FormLabel>
                       <RadioGroup
                         value={form.reason}
-                        onChange={e => handleChange('reason', e.target.value)}
+                        onChange={(e) => handleChange("reason", e.target.value)}
                       >
-                        {absenceReasons.map(opt => (
+                        {absenceReasons.map((opt) => (
                           <FormControlLabel
                             key={opt}
                             value={opt}
@@ -272,7 +325,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                           />
                         ))}
                       </RadioGroup>
-                      {errors.reason && <Typography color="error" variant="caption">{errors.reason}</Typography>}
+                      {errors.reason && (
+                        <Typography color="error" variant="caption">
+                          {errors.reason}
+                        </Typography>
+                      )}
                     </FormControl>
 
                     <ToggleButtonGroup
@@ -285,11 +342,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         value="writeoff"
                         color="success"
                         sx={{
-                          '&.Mui-selected': {
-                            backgroundColor: 'success.main',
-                            color: 'white',
-                            '&:hover': {
-                              backgroundColor: 'success.dark',
+                          "&.Mui-selected": {
+                            backgroundColor: "success.main",
+                            color: "white",
+                            "&:hover": {
+                              backgroundColor: "success.dark",
                             },
                           },
                         }}
@@ -302,11 +359,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         value="no_writeoff"
                         color="error"
                         sx={{
-                          '&.Mui-selected': {
-                            backgroundColor: 'error.main',
-                            color: 'white',
-                            '&:hover': {
-                              backgroundColor: 'error.dark',
+                          "&.Mui-selected": {
+                            backgroundColor: "error.main",
+                            color: "white",
+                            "&:hover": {
+                              backgroundColor: "error.dark",
                             },
                           },
                         }}
@@ -316,14 +373,13 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                       </ToggleButton>
                     </ToggleButtonGroup>
 
-
                     <TextField
                       label="Комментарий"
                       multiline
                       rows={3}
                       fullWidth
                       value={form.comment}
-                      onChange={e => handleChange('comment', e.target.value)}
+                      onChange={(e) => handleChange("comment", e.target.value)}
                       variant="outlined"
                     />
                   </Stack>
@@ -339,7 +395,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         <RadioGroup
                           row
                           value={form.conditionBefore}
-                          onChange={e => handleChange('conditionBefore', e.target.value)}
+                          onChange={(e) =>
+                            handleChange("conditionBefore", e.target.value)
+                          }
                         >
                           {conditionOptions.map((opt, index) => (
                             <FormControlLabel
@@ -347,7 +405,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                               value={opt.value}
                               control={<Radio />}
                               label={
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Box
+                                  sx={{ display: "flex", alignItems: "center" }}
+                                >
                                   {opt.icon}
                                   <Box sx={{ ml: 1 }}>{opt.value}</Box>
                                 </Box>
@@ -355,7 +415,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                             />
                           ))}
                         </RadioGroup>
-                        {errors.conditionBefore && <Typography color="error" variant="caption">{errors.conditionBefore}</Typography>}
+                        {errors.conditionBefore && (
+                          <Typography color="error" variant="caption">
+                            {errors.conditionBefore}
+                          </Typography>
+                        )}
                       </FormControl>
 
                       <FormControl fullWidth error={!!errors.intensity}>
@@ -363,9 +427,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         <RadioGroup
                           row
                           value={form.intensity}
-                          onChange={e => handleChange('intensity', e.target.value)}
+                          onChange={(e) =>
+                            handleChange("intensity", e.target.value)
+                          }
                         >
-                          {intensityOptions.map(opt => (
+                          {intensityOptions.map((opt) => (
                             <FormControlLabel
                               key={opt}
                               value={opt}
@@ -374,7 +440,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                             />
                           ))}
                         </RadioGroup>
-                        {errors.intensity && <Typography color="error" variant="caption">{errors.intensity}</Typography>}
+                        {errors.intensity && (
+                          <Typography color="error" variant="caption">
+                            {errors.intensity}
+                          </Typography>
+                        )}
                       </FormControl>
 
                       <FormControl fullWidth error={!!errors.conditionAfter}>
@@ -382,7 +452,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         <RadioGroup
                           row
                           value={form.conditionAfter}
-                          onChange={e => handleChange('conditionAfter', e.target.value)}
+                          onChange={(e) =>
+                            handleChange("conditionAfter", e.target.value)
+                          }
                         >
                           {conditionOptions.map((opt, index) => (
                             <FormControlLabel
@@ -390,7 +462,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                               value={opt.value}
                               control={<Radio />}
                               label={
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Box
+                                  sx={{ display: "flex", alignItems: "center" }}
+                                >
                                   {opt.icon}
                                   <Box sx={{ ml: 1 }}>{opt.value}</Box>
                                 </Box>
@@ -398,18 +472,28 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                             />
                           ))}
                         </RadioGroup>
-                        {errors.conditionAfter && <Typography color="error" variant="caption">{errors.conditionAfter}</Typography>}
+                        {errors.conditionAfter && (
+                          <Typography color="error" variant="caption">
+                            {errors.conditionAfter}
+                          </Typography>
+                        )}
                       </FormControl>
 
                       <FormControl fullWidth error={!!errors.rating}>
                         <FormLabel>Оценка тренировки</FormLabel>
                         <Rating
                           value={form.rating}
-                          onChange={(_, newValue) => handleChange('rating', newValue)}
+                          onChange={(_, newValue) =>
+                            handleChange("rating", newValue)
+                          }
                           size="large"
                           sx={{ mt: 1 }}
                         />
-                        {errors.rating && <Typography color="error" variant="caption">{errors.rating}</Typography>}
+                        {errors.rating && (
+                          <Typography color="error" variant="caption">
+                            {errors.rating}
+                          </Typography>
+                        )}
                       </FormControl>
                     </Stack>
                   </CardContent>
@@ -421,13 +505,20 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                   rows={3}
                   fullWidth
                   value={form.comment}
-                  onChange={e => handleChange('comment', e.target.value)}
+                  onChange={(e) => handleChange("comment", e.target.value)}
                   variant="outlined"
                 />
               </>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mt: 3,
+                gap: 2,
+              }}
+            >
               <Button
                 onClick={() => onClose()}
                 variant="outlined"
@@ -446,11 +537,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
             </Box>
           </Box>
         ) : (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Box sx={{ p: 3, textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="error" mb={2}>
               Внимание! У этого клиента нет купленного пакета.
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -464,37 +555,46 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                 variant="contained"
                 color="primary"
                 onClick={() => {
+                  handleViewChange("missed");
                   setOpenDialogMissedSession(true);
                 }}
               >
                 Продолжить
               </Button>
-              <Button
-                variant="outlined"
-                onClick={() => onClose()}
-              >
+              <Button variant="outlined" onClick={() => onClose()}>
                 Закрыть
               </Button>
             </Box>
-          </Box>)}
+          </Box>
+        )}
       </Dialog>
       {openDialogMissedSession && (
-        <Dialog open={openDialogMissedSession} onClose={() => setOpenDialogMissedSession(false)} maxWidth="sm" fullWidth >
+        <Dialog
+          open={openDialogMissedSession}
+          onClose={() => setOpenDialogMissedSession(false)}
+          maxWidth="sm"
+          fullWidth
+        >
           <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3,
+              }}
+            >
               <Typography variant="h5" fontWeight="bold">
                 {client.name}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-
+              <Box sx={{ display: "flex", gap: 1 }}>
                 <Chip
                   label="Пропущена"
-                  onClick={() => handleViewChange('missed')}
-                  color={view === 'missed' ? 'primary' : 'default'}
-                  variant={view === 'missed' ? 'filled' : 'outlined'}
+                  onClick={() => handleViewChange("missed")}
+                  color={view === "missed" ? "primary" : "default"}
+                  variant={view === "missed" ? "filled" : "outlined"}
                   icon={<CancelOutlined />}
                 />
-
               </Box>
             </Box>
             <TextField
@@ -503,7 +603,7 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={form.sessionDate}
-              onChange={(e) => handleChange('sessionDate', e.target.value)}
+              onChange={(e) => handleChange("sessionDate", e.target.value)}
               sx={{ mt: 3, mb: 2 }}
             />
             <Divider sx={{ mb: 3 }} />
@@ -514,9 +614,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                     <FormLabel>Причина отсутствия</FormLabel>
                     <RadioGroup
                       value={form.reason}
-                      onChange={e => handleChange('reason', e.target.value)}
+                      onChange={(e) => handleChange("reason", e.target.value)}
                     >
-                      {absenceReasons.map(opt => (
+                      {absenceReasons.map((opt) => (
                         <FormControlLabel
                           key={opt}
                           value={opt}
@@ -525,7 +625,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                         />
                       ))}
                     </RadioGroup>
-                    {errors.reason && <Typography color="error" variant="caption">{errors.reason}</Typography>}
+                    {errors.reason && (
+                      <Typography color="error" variant="caption">
+                        {errors.reason}
+                      </Typography>
+                    )}
                   </FormControl>
 
                   <ToggleButtonGroup
@@ -539,10 +643,10 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                       color="success"
                       disabled
                       sx={{
-                        '&.Mui-disabled': {
+                        "&.Mui-disabled": {
                           opacity: 0.5,
-                          backgroundColor: '#e0e0e0',
-                          color: '#888',
+                          backgroundColor: "#e0e0e0",
+                          color: "#888",
                         },
                       }}
                     >
@@ -554,11 +658,11 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                       value="no_writeoff"
                       color="error"
                       sx={{
-                        '&.Mui-selected': {
-                          backgroundColor: 'error.main',
-                          color: 'white',
-                          '&:hover': {
-                            backgroundColor: 'error.dark',
+                        "&.Mui-selected": {
+                          backgroundColor: "error.main",
+                          color: "white",
+                          "&:hover": {
+                            backgroundColor: "error.dark",
                           },
                         },
                       }}
@@ -568,22 +672,27 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
                     </ToggleButton>
                   </ToggleButtonGroup>
 
-
                   <TextField
                     label="Комментарий"
                     multiline
                     rows={3}
                     fullWidth
                     value={form.comment}
-                    onChange={e => handleChange('comment', e.target.value)}
+                    onChange={(e) => handleChange("comment", e.target.value)}
                     variant="outlined"
                   />
                 </Stack>
               </CardContent>
             </Card>
 
-
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mt: 3,
+                gap: 2,
+              }}
+            >
               <Button
                 onClick={() => setOpenDialogMissedSession(false)}
                 variant="outlined"
@@ -593,7 +702,10 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
               </Button>
               <Button
                 variant="contained"
-                onClick={handleSubmit}
+                onClick={() => {
+                  setOpenDialogMissedSession(false);
+                  handleSubmit();
+                }}
                 disabled={isSubmitting}
                 startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
               >
@@ -601,11 +713,9 @@ export const WriteOffSessions = ({ reloadClients, onSuccess, open, onClose, clie
               </Button>
             </Box>
           </Box>
-
         </Dialog>
       )}
     </>
-
   );
-}
+};
 export default WriteOffSessions;

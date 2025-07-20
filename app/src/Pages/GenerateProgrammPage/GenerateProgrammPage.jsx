@@ -10,7 +10,7 @@ import {
   Autocomplete,
   Stack,
 } from "@mui/material";
-import DaysProgramm from "../../components/DaysProgramm/DaysProgramm";
+import DaysProgramm from "../../components/DaysProgramm/DaysProgramm.jsx";
 
 const ITEM_TYPE = "CARD";
 const dayNames = [
@@ -22,6 +22,7 @@ const dayNames = [
   "Суббота",
   "Воскресенье",
 ];
+
 
 // Пример данных клиентов
 const mockClients = ["Иван Иванов", "Мария Петрова", "Алексей Смирнов"];

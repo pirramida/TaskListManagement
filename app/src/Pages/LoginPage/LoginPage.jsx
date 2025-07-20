@@ -52,7 +52,7 @@ const LoginPage = ({ setUser }) => {
                 <div className="circle top-right"></div>
                 <div className="circle bottom-left"></div>
                 <div className="left-content">
-                    <h1 className="title">ЮлькоФит</h1>
+                    <h1 className="title">YouFit</h1>
                     <h2 className="subtitle">
                     </h2>
                     <div className="icon-wrapper">

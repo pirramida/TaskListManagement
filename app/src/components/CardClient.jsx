@@ -52,6 +52,7 @@ import {
   Receipt,
   Warning,
   History,
+  Download,
 } from "@mui/icons-material";
 import React, { useState, useRef, useEffect } from "react";
 import PaymentsTable from "./PaymentsTable";
@@ -74,6 +75,7 @@ import StatisticGraphs from "../components/StatisticGraphs/StatisticGraphs.jsx";
 import TableStepsAndCalories from "../components/TableStepsAndCalories/TableStepsAndCalories.jsx";
 import TabAboutClient from "./TabAboutClient/TabAboutClient";
 import FitnessTesting from "./FitnessTesting/FitnessTesting";
+import axios from "axios";
 
 const CardClient = React.memo((props) => {
   const {
@@ -112,6 +114,9 @@ const CardClient = React.memo((props) => {
   const [payments, setPayments] = useState([]);
   const [showPayments, setShowPayments] = useState(false);
   const [sessionsHistoryClient, setSessionsHistoryClient] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
@@ -280,23 +285,24 @@ const CardClient = React.memo((props) => {
         phoneNumber: client.phone,
         form: editedClient,
       });
-      if (response.message === "Данныепользователяобновлены!") {
+      console.log(response);
+      if (response.message === "Данные пользователя обновлены!") {
         fetchData();
         setIsEditing(false);
         setSelectedClient(response.data[0]);
-        addSnackBar("DeleteClient1", "success", "Изменениясохраненыуспешно!");
+        addSnackBar("DeleteClient1", "success", "Изменения сохраненыу спешно!");
       } else {
         addSnackBar(
           "DeleteClient55",
           "error",
-          "Произошлаошибкаприизмененииклиента"
+          "Произошла ошибкапри изменении клиента"
         );
       }
     } catch (error) {
       addSnackBar(
         "DeleteClient",
         "error",
-        "Ошибкавполученииданныхклиентовссервера"
+        "Ошибка в получении данных клиентов с сервера"
       );
     }
   }, [client.phone, editedClient, fetchData, setSelectedClient, addSnackBar]);
@@ -365,24 +371,91 @@ const CardClient = React.memo((props) => {
     setShowPayments((prev) => !prev);
   };
 
+  const renderReportDialog = () => (
+    <Dialog
+      open={reportDialogOpen}
+      onClose={() => setReportDialogOpen(false)}
+      maxWidth="xs"
+      fullWidth
+    >
+      <DialogTitle>Создание отчёта</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          Выберите период (можно оставить пустым).
+        </Typography>
+
+        <TextField
+          label="От"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          label="До"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setReportDialogOpen(false)}>Отмена</Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            generateMonthlyReport();
+            setReportDialogOpen(false);
+          }}
+        >
+          Скачать
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   const generateMonthlyReport = async () => {
-    const payload = {
-      clientId: editedClient.id,
+    try {
+      const payload = {
+        clientId: editedClient.id,
+        startDate: startDate || null,
+        endDate: endDate || null,
+      };
+
+      console.log("=> REPORT PAYLOAD", payload);
+
+      const response = await axios.post(
+        "https://localhost:5000/report/monthly",
+        payload,
+        {
+          responseType: "blob", // важно!
+          withCredentials: true, // если нужна авторизация
+        }
+      );
+
+      // Создаем Blob URL
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      // Создаем ссылку и кликаем по ней
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "monthly_report.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      // Освобождаем память
+      URL.revokeObjectURL(url);
+      setStartDate("");
+      setEndDate("");
+    } catch (error) {
+      console.error("Ошибка скачивания PDF:", error);
     }
-    const res = await fetchWithRetry('/report/monthly', 'POST', payload);
-console.log('typeof res.blob:', typeof res.blob);
-
-    // Получаем Blob из Response
-    const blob = await res.blob();
-console.log('typeof blobblob.blob:', blob);
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'monthly_report.pdf';
-    a.click();
-
-  }
+  };
 
   return (
     <>
@@ -700,14 +773,15 @@ console.log('typeof blobblob.blob:', blob);
                   </Tooltip>
                   <Chip
                     size="small"
-                    icon={<Button onClick={() => generateMonthlyReport()}><Cake sx={{ color: "inherit !important" }} /></Button>}
+                    onClick={() => setReportDialogOpen(true)}
+                    icon={<Download sx={{ color: "inherit!important" }} />}
+                    label={<span>Скачать отчет</span>}
                     sx={{
                       color: "white",
                       bgcolor: "rgba(255,255,255,0.2)",
                       height: 32,
                     }}
                   />
-
                 </Box>
               </Box>
             </Box>
@@ -789,8 +863,8 @@ console.log('typeof blobblob.blob:', blob);
 
           {/* Статус бар */}
           {workoutStats.completed === 0 &&
-            workoutStats.total === 0 &&
-            workoutStats.progress === 0 ? (
+          workoutStats.total === 0 &&
+          workoutStats.progress === 0 ? (
             <Box
               sx={{
                 display: "flex",
@@ -1367,6 +1441,9 @@ console.log('typeof blobblob.blob:', blob);
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* Диалог для скачивания отчета*/}
+      {renderReportDialog()}
 
       {/* Диалог с оплатой */}
       <AddPaymentDialog

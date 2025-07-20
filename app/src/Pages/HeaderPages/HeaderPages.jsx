@@ -115,7 +115,7 @@ const HeaderPages = ({ user }) => {
               display: { xs: 'none', sm: 'block' }
             }}
           >
-            ЮлькоФит
+            YouFit
           </Typography>
         </Box>
 
